@@ -267,7 +267,7 @@ h3, h4 {
 .bslib-sidebar,
 .well {
   position: relative;
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 14px;
   padding: 20px;
   z-index: 1;
@@ -342,6 +342,74 @@ h3, h4 {
   padding-top: 0 !important;
   margin-top: 0 !important;
 }
+
+/* ===============================
+   REMOVE DEFAULT GUTTER
+================================ */
+/* Remove padding của tất cả column trong page-bg */
+.page-bg [class*="col-"] {
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+}
+
+/* Tạo khoảng cách trên để content không dính navbar */
+.bslib-page-main.page-bg {
+  padding-top: 20px !important;   /* hoặc 30px nếu muốn cách xa hơn */
+  margin-top: 0 !important;
+}
+
+/* ==========================
+   Card chung cho EDA page
+=========================== */
+.eda-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.25); /* màu nền trắng trong suốt */
+  border-radius: 10px;                     /* bo góc */
+  padding: 10px;                            /* padding như trong div */
+  z-index: 1;
+  box-sizing: border-box;                  /* để padding không phá layout */
+}
+
+/* Gradient border giống sidebar */
+.eda-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 2px; /* độ dày viền */
+  border-radius: 8px; /* bằng border-radius của card */
+  
+  background: linear-gradient(
+    to bottom,
+    rgba(99, 102, 241, 0.9),
+    rgba(139, 92, 246, 0.7),
+    rgba(236, 72, 153, 0.5)
+  );
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  pointer-events: none;
+  z-index: -1;
+}
+
+.eda-card-text {
+  flex-direction: column;  /* xếp chữ theo cột */
+  justify-content: center; /* canh dọc */
+  align-items: center;     /* canh ngang */
+  text-align: center;         /* để padding không phá layout */
+}
+
+
+
+
+
+
+
+
+
 
 
 
