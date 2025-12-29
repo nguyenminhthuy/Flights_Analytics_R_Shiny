@@ -10,6 +10,11 @@ html, body {
   padding-top: 0 !important;
 }
 
+.bslib-page-main.page-bg > div {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .navbar {
   margin-bottom: 0 !important;
 }
@@ -295,10 +300,9 @@ h3, h4 {
 }
 
 /* ===============================
-   ABOUT PAGE BACKGROUND
+   PAGE BACKGROUND (GRADIENT)
 ================================ */
-
-.about-page {
+.page-bg {
   width: 100vw;
   min-height: 100vh;
   margin-left: calc(-50vw + 50%);
@@ -313,8 +317,30 @@ h3, h4 {
   );
 }
 
-.about-page > .container {
+.bslib-page-main.page-bg {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.12),
+    rgba(139, 92, 246, 0.12),
+    rgba(236, 72, 153, 0.12)
+  ) !important;
+}
+
+.bslib-page-main.page-bg {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.page-bg > .container {
   max-width: 100%;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.page-bg > .container,
+.page-bg > .container-fluid {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
 }
 
 

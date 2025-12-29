@@ -4,8 +4,10 @@ nav_about <- tagList(
   header = tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
   ),
-  div(class = "about-page",
+  
+  div(class = "bslib-page-main page-bg",
     sidebarLayout(
+      
       # -------- Sidebar --------
       sidebarPanel(
         width = 3,
@@ -19,16 +21,19 @@ nav_about <- tagList(
           icon("database"),
           " Source: Kaggle / US DOT"
         ),
+        
         hr(),
         tags$small(
           "Prepared by: ",
           tags$strong("Thuy Nguyen")
         ),
+        
         br(),
         tags$small(
           "Last updated: ",
           tags$strong("Jan 2026")
         ),
+        
         br(), br()
       ),
       
