@@ -1,4 +1,4 @@
-nav_eda_discruption <- tagList(
+nav_pf_factors <- tagList(
   
   # LOAD CSS
   header = tagList(
@@ -12,7 +12,7 @@ nav_eda_discruption <- tagList(
                    column(
                      width = 6,
                      div(class = "eda-card eda-card-text",
-                         tags$h4("Flight Disruptions (Cancellations & Diversions)"),
+                         tags$h4("FACTORS"),
                          tags$hr(class = "hr-main"),
                          
                          tags$strong("YEARS: "),
@@ -33,7 +33,7 @@ nav_eda_discruption <- tagList(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("1.2M"),
-                         tags$strong("Cancellation Rate (%)")
+                         tags$strong("Flights")
                          
                      )
                    ),
@@ -41,14 +41,14 @@ nav_eda_discruption <- tagList(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("1.2%"),
-                         tags$strong("Diversion Rate (%)")
+                         tags$strong("Avg Dep")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("3.2%"),
-                         tags$strong("Total Disrupted Flights")
+                         tags$strong("Avg Arr")
                          
                      )
                    ),
@@ -113,32 +113,25 @@ nav_eda_discruption <- tagList(
                        column(
                          width = 6,
                          div(class = "eda-card",
-                             style = "margin-bottom: 20px;",
-                             h3("Trend over time"),
-                             p("Nội dung cột 1-2")
-                         ),
-                         div(class = "eda-card",
-                             h3("Cause share"),
+                             h3("relative influence of delay factors"),
                              p("Nội dung cột 1-2")
                          )
                        ),
+                       
                        column(
                          width = 6,
                          div(class = "eda-card",
-                             h3("Comparison"),
+                             style = "margin-bottom: 20px;",
+                             h3("marginal effect of delay components"),
                              p("Nội dung cột 1-2")
-                         )
-                       )
-              ),
-              fluidRow(style = "margin-bottom: 20px;",
-                       column(
-                         width = 12,
+                         ),
                          div(class = "eda-card",
-                             h3("Geo map"),
+                             h3("Reliability vs performance of delay factors"),
                              p("Nội dung cột 1-2")
                          )
                        )
               )
+              
           )
         )
       )

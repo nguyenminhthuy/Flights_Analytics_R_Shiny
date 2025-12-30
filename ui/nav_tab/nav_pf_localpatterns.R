@@ -1,4 +1,4 @@
-nav_eda_discruption <- tagList(
+nav_pf_localpatterns <- tagList(
   
   # LOAD CSS
   header = tagList(
@@ -12,7 +12,7 @@ nav_eda_discruption <- tagList(
                    column(
                      width = 6,
                      div(class = "eda-card eda-card-text",
-                         tags$h4("Flight Disruptions (Cancellations & Diversions)"),
+                         tags$h4("LOCAL PATTERNS"),
                          tags$hr(class = "hr-main"),
                          
                          tags$strong("YEARS: "),
@@ -25,6 +25,11 @@ nav_eda_discruption <- tagList(
                          
                          tags$span(" | "),
                          
+                         tags$strong("AIRPORT: "),
+                         tags$span("Delta, United"),
+                         
+                         tags$span(" | "),
+                         
                          tags$strong("SEASON: "),
                          tags$span("Delta, United")
                      )
@@ -33,7 +38,7 @@ nav_eda_discruption <- tagList(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("1.2M"),
-                         tags$strong("Cancellation Rate (%)")
+                         tags$strong("Flights")
                          
                      )
                    ),
@@ -41,14 +46,14 @@ nav_eda_discruption <- tagList(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("1.2%"),
-                         tags$strong("Diversion Rate (%)")
+                         tags$strong("Avg Dep")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
                          tags$h3("3.2%"),
-                         tags$strong("Total Disrupted Flights")
+                         tags$strong("Avg Arr")
                          
                      )
                    ),
@@ -84,6 +89,17 @@ nav_eda_discruption <- tagList(
             width = "100%"
           ),
           
+          # ===== ORIGIN AIRPORT  =====
+          tags$label(icon("plane-departure"), " Airport"),
+          selectInput(
+            inputId = "airport_select",
+            label = NULL,
+            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            selected = "All",
+            selectize = TRUE,   # 👈 search enabled
+            width = "100%"
+          ),
+          
           # ===== SEASON  =====
           tags$label(icon("cloud-sun"), " Season"),
           selectInput(
@@ -110,34 +126,34 @@ nav_eda_discruption <- tagList(
           width = 9,
           div(class = "container-fluid",
               fluidRow(style = "margin-bottom: 20px;",
-                       column(
-                         width = 6,
-                         div(class = "eda-card",
-                             style = "margin-bottom: 20px;",
-                             h3("Trend over time"),
-                             p("Nội dung cột 1-2")
-                         ),
-                         div(class = "eda-card",
-                             h3("Cause share"),
-                             p("Nội dung cột 1-2")
-                         )
-                       ),
-                       column(
-                         width = 6,
-                         div(class = "eda-card",
-                             h3("Comparison"),
-                             p("Nội dung cột 1-2")
-                         )
-                       )
+                column(
+                  width = 6,
+                  div(class = "eda-card",
+                      style = "margin-bottom: 20px;",
+                      h3("Airport ranking (table"),
+                      p("Nội dung cột 1-2")
+                  ),
+                  div(class = "eda-card",
+                      h3("Route ranking (table)"),
+                      p("Nội dung cột 1-2")
+                  )
+                ),
+                column(
+                  width = 6,
+                  div(class = "eda-card",
+                      h3("Gep map: Arr delay by airport"),
+                      p("Nội dung cột 1-2")
+                  )
+                )
               ),
               fluidRow(style = "margin-bottom: 20px;",
-                       column(
-                         width = 12,
-                         div(class = "eda-card",
-                             h3("Geo map"),
-                             p("Nội dung cột 1-2")
-                         )
-                       )
+                column(
+                  width = 12,
+                  div(class = "eda-card",
+                      h3("Chart time of day"),
+                      p("Nội dung cột 1-2")
+                  )
+                )
               )
           )
         )

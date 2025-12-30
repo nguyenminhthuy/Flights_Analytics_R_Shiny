@@ -41,29 +41,29 @@ nav_eda_overview <- tagList(
             column(width = 6,
                    column(width = 3,
                     div(class = "eda-card eda-card-text",
-                      h2("6.74M"),
-                      p("Flights")
+                      tags$h3("1.2M"),
+                      tags$strong("Flights")
                     )
                 ),
                 
                 column(width = 3,
                     div(class = "eda-card eda-card-text",
-                      h2("15"),
-                      p("Airlines")
+                      tags$h3("1.2M"),
+                      tags$strong("Airlines")
                     )
                 ),
                 
                 column(width = 3,
                     div(class = "eda-card eda-card-text",
-                      h2("13.48"),
-                      p("Avg Departure Delay")
+                      tags$h3("1.2M"),
+                      tags$strong("Avg Departure Delay")
                     )
                 ),
                 
                 column(width = 3,
                     div(class = "eda-card eda-card-text",
-                      h2("350"),
-                      p("Airports")
+                        tags$h3("1.2M"),
+                        tags$strong("Airports")
                     )
                 ),
             ),

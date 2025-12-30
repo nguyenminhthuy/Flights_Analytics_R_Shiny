@@ -16,13 +16,13 @@ nav_about <- tagList(
         h4(icon("circle-info"), " About Dataset"),
         p("Overview of the dataset used in this dashboard."),
         
-        hr(),
+        tags$hr(class = "hr-main"),
         tags$small(
           icon("database"),
           " Source: Kaggle / US DOT"
         ),
         
-        hr(),
+        tags$hr(class = "hr-main"),
         tags$small(
           "Prepared by: ",
           tags$strong("Thuy Nguyen")
