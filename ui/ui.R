@@ -5,9 +5,11 @@ source("ui/nav_tab/nav_pf_localpatterns.R")
 source("ui/nav_tab/nav_pf_factors.R")
 
 source("ui/nav_tab/nav_eda_discruption.R")
-source("ui/nav_tab/nav_model.R")
+source("ui/nav_tab/nav_model1.R")
 
 source("ui/nav_tab/nav_about.R")
+
+source("ui/nav_tab/nav_template.R")
 
 ui <- navbarPage(
   title = "U.S. Flight Operations",
@@ -37,11 +39,14 @@ ui <- navbarPage(
   # ===== MODEL =====
   navbarMenu(
     title = "Model",
-    tabPanel("Model 1", nav_model),
+    tabPanel("Model 1", nav_model1),
     tabPanel("Model 2", "Coming soon"),
     tabPanel("Model 3", "Coming soon")
   ),
   
   # ===== ABOUT =====
-  tabPanel("About", nav_about)
+  tabPanel("About", nav_about),
+  
+  # ===== ABOUT =====
+  tabPanel("Template", nav_template)
 )
