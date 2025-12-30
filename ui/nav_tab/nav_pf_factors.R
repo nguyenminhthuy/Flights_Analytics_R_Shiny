@@ -32,7 +32,7 @@ nav_pf_factors <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2M"),
+                         tags$h3("?"),
                          tags$strong("Flights")
                          
                      )
@@ -40,14 +40,14 @@ nav_pf_factors <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2%"),
+                         tags$h3("?"),
                          tags$strong("Avg Dep")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("3.2%"),
+                         tags$h3("?"),
                          tags$strong("Avg Arr")
                          
                      )
@@ -113,7 +113,7 @@ nav_pf_factors <- tagList(
                        column(
                          width = 6,
                          div(class = "eda-card",
-                             h3("relative influence of delay factors"),
+                             h3("Chart: INFLUENCE OF VARIOUS DELAYS"),
                              p("Nội dung cột 1-2")
                          )
                        ),
@@ -122,11 +122,11 @@ nav_pf_factors <- tagList(
                          width = 6,
                          div(class = "eda-card",
                              style = "margin-bottom: 20px;",
-                             h3("marginal effect of delay components"),
+                             h3("Chart: Marginal Effect of Delay Components on Arrival Delay"),
                              p("Nội dung cột 1-2")
                          ),
                          div(class = "eda-card",
-                             h3("Reliability vs performance of delay factors"),
+                             h3("Chart: Reliability vs Performance of Delay Factors"),
                              p("Nội dung cột 1-2")
                          )
                        )

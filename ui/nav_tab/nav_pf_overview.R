@@ -16,17 +16,17 @@ nav_pf_overview <- tagList(
                   tags$hr(class = "hr-main"),
                   
                   tags$strong("YEARS: "),
-                  tags$span("2020–2023"),
+                  tags$span("2019–2023"),
                   tags$span(" | "),
                   
                   tags$strong("AIRLINES: "),
-                  tags$span("Delta, United")
+                  tags$span("All airlines")
               )
             ),
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("1.2M"),
+                  tags$h3("3.0M"),
                   tags$strong("Flights")
                   
               )
@@ -34,14 +34,14 @@ nav_pf_overview <- tagList(
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("1.2%"),
+                  tags$h3("82.47%"),
                   tags$strong("On-time Rate")
               )
             ),
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("3.2%"),
+                  tags$h3("17.53%"),
                   tags$strong("Delay Rate")
                   
               )
@@ -93,17 +93,17 @@ nav_pf_overview <- tagList(
           width = 9,
           div(class = "eda-card",
               style = "margin-bottom: 20px;",
-              h3("On-time vs delayed over time (Month)"),
+              h3("Chart: MONTHLY DISTRIBUTION OF ON-TIME & DELAYED FLIGHTS"),
               p("Nội dung cột 1-2")
           ),
           div(class = "eda-card",
               style = "margin-bottom: 20px;",
-              h3("Avg delay vs flights"),
+              h3("Chart: MONTHLY FLIGHT VOLUME VS AVERAGE DELAY"),
               p("Nội dung cột 1-2")
           ),
           div(class = "eda-card",
               style = "margin-bottom: 20px;",
-              h3("Delay causes"),
+              h3("Chart: Delay Causes"),
               p("Nội dung cột 1-2")
           )
         )

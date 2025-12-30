@@ -21,33 +21,33 @@ nav_eda_discruption <- tagList(
                          tags$span(" | "),
                          
                          tags$strong("AIRLINES: "),
-                         tags$span("Delta, United"),
+                         tags$span("All airlines"),
                          
                          tags$span(" | "),
                          
                          tags$strong("SEASON: "),
-                         tags$span("Delta, United")
+                         tags$span("All seasons")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2M"),
-                         tags$strong("Cancellation Rate (%)")
+                         tags$h3("2.72%"),
+                         tags$strong("Cancelled flights")
                          
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2%"),
-                         tags$strong("Diversion Rate (%)")
+                         tags$h3("0.2%"),
+                         tags$strong("Diverted flights")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("3.2%"),
+                         tags$h3("732K"),
                          tags$strong("Total Disrupted Flights")
                          
                      )
@@ -114,18 +114,18 @@ nav_eda_discruption <- tagList(
                          width = 6,
                          div(class = "eda-card",
                              style = "margin-bottom: 20px;",
-                             h3("Trend over time"),
+                             h3("Chart: Flight Disruption Rate Over Time (Cancelled vs Diverted)"),
                              p("Nội dung cột 1-2")
                          ),
                          div(class = "eda-card",
-                             h3("Cause share"),
+                             h3("Chart: Share of Disruption Causes"),
                              p("Nội dung cột 1-2")
                          )
                        ),
                        column(
                          width = 6,
                          div(class = "eda-card",
-                             h3("Comparison"),
+                             h3("?"),
                              p("Nội dung cột 1-2")
                          )
                        )
@@ -134,7 +134,7 @@ nav_eda_discruption <- tagList(
                        column(
                          width = 12,
                          div(class = "eda-card",
-                             h3("Geo map"),
+                             h3("?"),
                              p("Nội dung cột 1-2")
                          )
                        )

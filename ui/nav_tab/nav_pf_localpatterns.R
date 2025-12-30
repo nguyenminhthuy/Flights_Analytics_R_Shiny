@@ -16,44 +16,44 @@ nav_pf_localpatterns <- tagList(
                          tags$hr(class = "hr-main"),
                          
                          tags$strong("YEARS: "),
-                         tags$span("2020–2023"),
+                         tags$span("2019–2023"),
                          
                          tags$span(" | "),
                          
                          tags$strong("AIRLINES: "),
-                         tags$span("Delta, United"),
+                         tags$span("All airlines"),
                          
                          tags$span(" | "),
                          
                          tags$strong("AIRPORT: "),
-                         tags$span("Delta, United"),
+                         tags$span("All airports"),
                          
                          tags$span(" | "),
                          
                          tags$strong("SEASON: "),
-                         tags$span("Delta, United")
+                         tags$span("All Seasons")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2M"),
-                         tags$strong("Flights")
+                         tags$h3("75K"),
+                         tags$strong("Total flights")
                          
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("1.2%"),
-                         tags$strong("Avg Dep")
+                         tags$h3("10.05"),
+                         tags$strong("Dep Delay (min)")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("3.2%"),
-                         tags$strong("Avg Arr")
+                         tags$h3("5.31"),
+                         tags$strong("Arr Delay (min)")
                          
                      )
                    ),
@@ -130,18 +130,18 @@ nav_pf_localpatterns <- tagList(
                   width = 6,
                   div(class = "eda-card",
                       style = "margin-bottom: 20px;",
-                      h3("Airport ranking (table"),
+                      h3("Table: AIRPORT DELAY STABILITY"),
                       p("Nội dung cột 1-2")
                   ),
                   div(class = "eda-card",
-                      h3("Route ranking (table)"),
+                      h3("Table: ROUTING RANKING"),
                       p("Nội dung cột 1-2")
                   )
                 ),
                 column(
                   width = 6,
                   div(class = "eda-card",
-                      h3("Gep map: Arr delay by airport"),
+                      h3("Chart: TIME OF DAY --> AVG ARRIVAL DELAY BY DEPARTURE HOUR"),
                       p("Nội dung cột 1-2")
                   )
                 )
@@ -150,7 +150,7 @@ nav_pf_localpatterns <- tagList(
                 column(
                   width = 12,
                   div(class = "eda-card",
-                      h3("Chart time of day"),
+                      h3("Map: Arrival delay by airport"),
                       p("Nội dung cột 1-2")
                   )
                 )
