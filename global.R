@@ -314,7 +314,7 @@ df_air_rank <- df_flights |>
   group_by(AIRLINE) |>
   summarise(n_flights = n(), .groups = "drop") |>
   arrange(desc(n_flights)) |>
-  slice_head(n = 10) |>   # ✅ TOP 10
+  slice_head(n = 14) |>   # ✅ TOP 10
   mutate(
     # ép factor trước khi plot để reorder
     AIRLINE = factor(AIRLINE, levels = AIRLINE),
@@ -327,7 +327,16 @@ fig_airline_rank <- plot_ly(
   y = ~AIRLINE,
   type = "bar",
   orientation = "h",
-  marker = list(color = "#14b8a6"),
+  # ===== GRADIENT COLOR =====
+  marker = list(
+    color = ~n_flights,
+    colorscale = list(
+      list(0, "#99f6e4"),
+      list(0.5, "#2dd4bf"),
+      list(1, "#0f766e")
+    ),
+    showscale = FALSE
+  ),
   hovertemplate = "<b>%{y}</b><br>%{customdata} flights<extra></extra>",
   customdata = df_air_rank$text   # số đã format (3.2M)
 ) |> 
@@ -353,7 +362,7 @@ fig_airline_rank <- plot_ly(
     title = list(
       text = paste0(
         "AIRLINE RANKING",
-        "<br><span style='font-size:14px;color:#666;font-style:italic'>Flight Counts</span>"
+        "<br><span style='font-size:14px; color:#666;font-style:italic;'>Flight Counts</span>"
       ),
       x = 0.5,
       xanchor = "center",
@@ -366,20 +375,232 @@ fig_airline_rank <- plot_ly(
   config(responsive = TRUE,
          displayModeBar = FALSE)
 
+#==================================#
+# Chart: Flight Distance Distribution
+#==================================#
+
+df_distance_departures <- df_flights |>
+  group_by(DISTANCE_CAT) |>
+  summarise(n_flights = n(), .groups = "drop") |>
+  arrange(DISTANCE_CAT)
+
+fig_distance_dist <- plot_ly(
+  data = df_distance_departures
+) |>
+  add_bars(
+    x = ~DISTANCE_CAT,
+    y = ~n_flights,
+    color = ~DISTANCE_CAT,
+    colors = c("#F6C453", "#6EDBC4", "#F58BB6"),
+    opacity = 0.8
+  ) |>
+  layout(
+    showlegend = FALSE,
+    xaxis = list(title = ""),
+    yaxis = list(title = ""),
+    title = list(
+      text = paste0(
+        "FLIGHT DISTANCE DISTRIBUTION",
+        "<br><span style='font-size:14px;color:#666;font-style:italic'>",
+        "by number of flights</span>"
+      ),
+      x = 0.5,
+      xanchor = "center",
+      font = list(size = 16, color = "#333", family = "Comic Sans MS")
+    ),
+    margin = list(l = 10, r = 10, t = 70, b = 10),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)"
+  ) |>
+  config(responsive = TRUE,
+         displayModeBar = FALSE)
+
+#==================================#
+# Chart: National Coverage
+#==================================#
+df_flights <- df_flights |>
+  mutate(
+    ORIGIN_AIRPORT = paste0(ORIGIN_CITY, " (", ORIGIN, ")")
+  )
+
+df_origin_airport <- df_flights |>
+  filter(!is.na(ORIGIN_LAT) & !is.na(ORIGIN_LON)) |>   # loại bỏ dòng NA
+  group_by(ORIGIN_AIRPORT, ORIGIN_LAT, ORIGIN_LON) |>
+  summarise(n_flights = n(), .groups = "drop") |>
+  mutate(text = sapply(n_flights, format_compact))
+
+pal <- colorNumeric(
+  palette = c("#3b82f6", "#22c55e", "#f59e0b", "#ef4444"),
+  domain = df_origin_airport$n_flights
+)
+
+radius_fun <- function(x) pmin(5, log(x + 1) * 4)
+
+fig_national_coverage <- leaflet(df_origin_airport) |>
+  # map background
+  addProviderTiles(providers$CartoDB.Positron) |>
+  setView(
+    lng = mean(df_origin_airport$ORIGIN_LON),
+    lat = mean(df_origin_airport$ORIGIN_LAT),
+    zoom = 4
+  ) |>
+  addControl(
+    html = "
+      <div style='
+        font-size:18px;
+        font-weight:600;
+        color:#333;
+        padding:6px 10px;
+      '>
+        National Coverage
+        <div style='font-size:13px; color:#666; font-style:italic;'>
+          Number of flights by origin airport
+        </div>
+      </div>
+    ",
+    position = "topright"
+  ) |>
+  
+  # 🔵 layer 1: halo mờ (nhòe)
+  addCircleMarkers(
+    lng = ~ORIGIN_LON,
+    lat = ~ORIGIN_LAT,
+    radius = ~radius_fun(n_flights) * 1.8,
+    fillColor = ~pal(n_flights),
+    fillOpacity = 0.25,
+    stroke = FALSE
+  ) |>
+  
+  # 🔴 layer 2: bubble chính (rõ)
+  addCircleMarkers(
+    lng = ~ORIGIN_LON,
+    lat = ~ORIGIN_LAT,
+    radius = ~radius_fun(n_flights),
+    fillColor = ~pal(n_flights),
+    fillOpacity = 0.75,
+    stroke = FALSE,
+    label = ~paste0(ORIGIN_AIRPORT, " - ", text, " flights")
+  )
+
+#==================================#
+# Chart: Weekly Distribution
+#==================================#
+
+dow_map <- c(
+  "1" = "Monday", "2" = "Tuesday", "3" = "Wednesday",
+  "4" = "Thursday", "5" = "Friday",
+  "6" = "Saturday", "7" = "Sunday"
+)
+
+df_dow <- df_flights |>
+  group_by(YEAR, DAY_OF_WEEK) |>
+  summarise(n_flights = n(), .groups = "drop") |>
+  mutate(
+    DAY = factor(dow_map[as.character(DAY_OF_WEEK)],
+                 levels = c("Monday","Tuesday","Wednesday","Thursday",
+                            "Friday","Saturday","Sunday")),
+    YEAR = as.character(YEAR)
+  ) |>
+  arrange(YEAR, DAY_OF_WEEK)
+
+year_colors <- c(
+  "2019" = "#F6C453",  # vàng
+  "2020" = "#6EDBC4",  # xanh mint
+  "2021" = "#F58BB6",  # hồng
+  "2022" = "#a995ed",  # tím
+  "2023" = "#ed8f6d"   # cam/coral
+)
 
 
+fig_dow_dist <- plot_ly(
+  df_dow,
+  x = ~DAY, 
+  y = ~n_flights,
+  color = ~YEAR, 
+  colors = year_colors,
+  type = "bar",
+  opacity = 0.8,
+  hovertemplate = paste(
+    "<b>Day:</b> %{x}<br>",
+    "<b>Flights:</b> %{y}<br>",
+    "<b>Year:</b> %{customdata}"
+  ),
+  customdata = ~YEAR
+) |>
+  layout(
+    barmode = "stack",
+    showlegend = FALSE,
+    xaxis = list(title = ""),
+    yaxis = list(title = "", showgrid = FALSE),
+    title = list(
+      text = paste0(
+        "WEEKLY DISTRIBUTION",
+        "<br><span style='font-size:14px;color:#666;font-style:italic'>",
+        "Number of flights</span>"
+      ),
+      x = 0.5,
+      xanchor = "center",
+      font = list(size = 16, color = "#333", family = "Comic Sans MS")
+    ),
+    margin = list(l = 10, r = 10, t = 70, b = 10),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)"
+  ) |>
+  config(responsive = TRUE,
+         displayModeBar = FALSE)
 
+#==================================#
+# Chart: Monthly Departures
+#==================================#
 
+df_monthly_departures <- df_flights |>
+  group_by(MONTH) |>
+  summarise(n_flights = n(), .groups = "drop") |>
+  arrange(MONTH) |>
+  mutate(text = sapply(n_flights, format_compact))
 
-
-
-
-
-
-
-
-
-
+fig_monthly_departures <- plot_ly(
+  df_monthly_departures,
+  x = ~MONTH,
+  y = ~n_flights,
+  type = "scatter",
+  mode = "lines+markers+text",
+  text = ~text,
+  textposition = "top center",
+  cliponaxis = FALSE,
+  opacity = 0.8,
+  line = list(color = "#3b82f6", width = 3),
+  marker = list(size = 8),
+  fill = "tozeroy",      # fill area dưới line
+  fillcolor = "#f7d960", # màu mảng
+  hovertemplate = paste(
+    "<b>Month:</b> %{x}<br>",
+    "<b>Flights:</b> %{y}<extra></extra>"
+  ),
+  height = 400
+) |>
+  layout(
+    yaxis = list(title = ""),
+    xaxis = list(
+      title = "",
+      type = "category"
+    ),
+    title = list(
+      text = paste0(
+        "MONTHLY DEPARTURES",
+        "<br><span style='font-size:14px;color:#666;font-style:italic'>",
+        "by number of flights</span>"
+      ),
+      x = 0.5,
+      xanchor = "center",
+      font = list(size = 16, color = "#333", family = "Comic Sans MS")
+    ),
+    margin = list(l = 10, r = 10, t = 70, b = 10),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)"
+  ) |>
+  config(responsive = TRUE, 
+         displayModeBar = FALSE)
 
 
 

@@ -51,29 +51,35 @@ server <- function(input, output, session) {
     ))
   }, once = TRUE)
   
-  # output$ov_tt_flights <- renderUI({
-  #   tags$span(total_flights_fmt)
-  # })
-  # 
-  # output$ov_tt_airlines <- renderUI({
-  #   tags$span(total_airlines)
-  # })
-  # 
-  # output$ov_tt_airports <- renderUI({
-  #   tags$span(total_airports)
-  # })
-  # 
-  # output$ov_tt_routes <- renderUI({
-  #   tags$span(total_routes)
-  # })
-  
   #----------------------------------#
   # OVERVIEW CHARTS
-  # Chart: Airline Rankings
   #----------------------------------#
+  # Chart: Airline Rankings
   output$ov_airline_rank <- renderPlotly({
     fig_airline_rank
   })
+  
+  # Chart: Flight Distance Distribution
+  output$ov_distance_dist <- renderPlotly({
+    fig_distance_dist
+  })
+  
+  # Chart: National Coverage
+  output$ov_national_coverage <- renderLeaflet({
+    fig_national_coverage
+  })
+  
+  # Chart: Weekly Distribution
+  output$ov_dow_dist <- renderPlotly({
+    fig_dow_dist
+  })
+  
+  # Chart: Monthly Departures
+  output$ov_monthly_departure <- renderPlotly({
+    fig_monthly_departures
+  })
+  
+  
   
   
   

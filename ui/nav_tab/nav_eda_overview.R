@@ -58,7 +58,7 @@ nav_eda_overview <- tagList(
               column(
                 width = 6,
                 div(class = "eda-card eda-card-text",
-                    style = "margin-bottom: 20px;",
+                    style = "margin-bottom: 40px;",
                     h4("2019-2023 Overview"),
                     p(uiOutput("ov_flight_change")),
                     p(uiOutput("ov_cancel_change")),
@@ -71,12 +71,14 @@ nav_eda_overview <- tagList(
                     width = 6,
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3(tags$span(id = "ov_total_flights")),
+                        tags$h3(tags$span(id = "ov_total_flights",
+                                          style = "font-size: 35px;")),
                         tags$strong("Total flights")
                     ),
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3(tags$span(id = "ov_total_airlines")),
+                        tags$h3(tags$span(id = "ov_total_airlines",
+                                          style = "font-size: 35px;")),
                         tags$strong("Total airlines")
                     )
                   ),
@@ -84,12 +86,14 @@ nav_eda_overview <- tagList(
                     width = 6,
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3(tags$span(id = "ov_total_airports")),
+                        tags$h3(tags$span(id = "ov_total_airports",
+                                          style = "font-size: 35px;")),
                         tags$strong("Total airports")
                     ),
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3(tags$span(id = "ov_total_routes")),
+                        tags$h3(tags$span(id = "ov_total_routes",
+                                          style = "font-size: 35px;")),
                         tags$strong("Total routes")
                     )
                   )
@@ -98,55 +102,38 @@ nav_eda_overview <- tagList(
               ),
               column(
                 width = 6,
+                # Chart: Airline Rankings
                 div(class = "eda-card",
                     style = "margin-bottom: 20px;",
-                    #h4("Chart: Airline Ranking"),
-                    #p("Chart"),
-                    plotlyOutput("ov_airline_rank")
+                    plotlyOutput("ov_airline_rank", height = 500)
                 )
               )
             ),
             column(
               width = 6,
+              # Chart: Flight Distance Distribution
               div(class = "eda-card",
                   style = "margin-bottom: 20px;",
-                  h4("Chart: Flight Distance Distribution"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart"),
+                  plotlyOutput("ov_distance_dist", height = 200)
               ),
+              # Chart: National Coverage
               div(class = "eda-card",
                   style = "margin-bottom: 20px;",
-                  h4("Chart: National Coverage"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart"),
-                  p("Chart")
+                  leafletOutput("ov_national_coverage", height = 260)
               )
             )
           ),
           fluidRow(style = "margin-bottom: 20px;",
                    column(width = 5,
+                          # Chart: Weekly Distribution
                           div(class = "eda-card",
-                              h4("Chart: Weekly Distribution"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart")
+                              plotlyOutput("ov_dow_dist")
                           )
                    ),
                    column(width = 7,
+                          # Chart: Monthly Departures
                           div(class = "eda-card",
-                              h4("Chart: Monthly Departures"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart"),
-                              p("Chart")
+                              plotlyOutput("ov_monthly_departure")
                           )
                    )
           )
