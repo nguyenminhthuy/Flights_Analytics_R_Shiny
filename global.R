@@ -261,6 +261,7 @@ df_operated <- count_by_year(
 #----------------------------------#
 # METRIC TREND + ICON
 #----------------------------------#
+
 metric_trend <- function(value, label = "") {
   is_positive <- value >= 0
   
@@ -304,6 +305,78 @@ total_routes <- nrow(df_flights |>
                        distinct(ORIGIN, DEST))
 
 total_flights_fmt <- format_compact(total_flights)
+
+#==================================#
+# Chart: Airline Rankings
+#==================================#
+
+df_air_rank <- df_flights |>
+  group_by(AIRLINE) |>
+  summarise(n_flights = n(), .groups = "drop") |>
+  arrange(desc(n_flights)) |>
+  slice_head(n = 10) |>   # ✅ TOP 10
+  mutate(
+    # ép factor trước khi plot để reorder
+    AIRLINE = factor(AIRLINE, levels = AIRLINE),
+    text = sapply(n_flights, format_compact)
+  )
+
+fig_airline_rank <- plot_ly(
+  data = df_air_rank,
+  x = ~n_flights,
+  y = ~AIRLINE,
+  type = "bar",
+  orientation = "h",
+  marker = list(color = "#14b8a6"),
+  hovertemplate = "<b>%{y}</b><br>%{customdata} flights<extra></extra>",
+  customdata = df_air_rank$text   # số đã format (3.2M)
+) |> 
+  layout(
+    # ===== TRỤC Y =====
+    yaxis = list(
+      autorange = "reversed",
+      title = "",        # ẩn title
+      showticklabels = TRUE, # vẫn hiện airline
+      ticks = "",           # ẩn tick
+      showline = FALSE,
+      zeroline = FALSE
+    ),
+    # ===== TRỤC X =====
+    xaxis = list(
+      title = "",        # ẩn title
+      showticklabels = FALSE, # ẩn số
+      ticks = "",             # ẩn tick
+      showgrid = FALSE,       # ẩn grid
+      zeroline = FALSE,
+      showline = FALSE
+    ),
+    title = list(
+      text = paste0(
+        "AIRLINE RANKING",
+        "<br><span style='font-size:14px;color:#666;font-style:italic'>Flight Counts</span>"
+      ),
+      x = 0.5,
+      xanchor = "center",
+      font = list(size = 16, color = "#333", family = "Comic Sans MS")
+    ),
+    margin = list(l = 0, r = 0, t = 80, b = 0),
+    paper_bgcolor = "rgba(0,0,0,0)",
+    plot_bgcolor = "rgba(0,0,0,0)"
+  ) |>
+  config(responsive = TRUE,
+         displayModeBar = FALSE)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
