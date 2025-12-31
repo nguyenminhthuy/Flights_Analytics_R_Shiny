@@ -86,8 +86,21 @@ Cần giá trị thay đổi    → reactive()
 Chỉ chạy hành động      → observe()
 Chạy khi click / event  → observeEvent()
 
-
-
+================================
+ĐÃ CÓ EDA
+================================
+EDA (đã có)
+   ↓
+global.R  → load + xử lý data
+   ↓
+server.R  → reactive + logic
+   ↓
+modules/  → vẽ plot
+   ↓
+ui.R      → layout hiển thị
+   ↓
+app.R     → nối tất cả
+,
 
 
 

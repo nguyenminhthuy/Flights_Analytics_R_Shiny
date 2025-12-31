@@ -1,4 +1,4 @@
-nav_template <- tagList(
+nav_model1 <- tagList(
   tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),
   
   div(class = "bslib-page-main page-bg",

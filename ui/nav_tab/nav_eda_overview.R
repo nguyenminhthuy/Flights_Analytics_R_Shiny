@@ -11,23 +11,23 @@ nav_eda_overview <- tagList(
                 div(class = "eda-card eda-card-text",
                     style = "margin-bottom: 20px;",
                     h4("2019-2023 Overview"),
-                    p("Flights volume: -38.83"),
-                    p("Cancelled: -42.6"),
-                    p("Diverted: -36.41"),
-                    p("On-time: -38.77"),
-                    p("Delayed: -24.99")
+                    p(uiOutput("flight_change")),
+                    p(uiOutput("cancel_change")),
+                    p(uiOutput("divert_change")),
+                    p(uiOutput("ontime_change")),
+                    p(uiOutput("delay_change"))
                 ),
                 div(
                   column(
                     width = 6,
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3("3.0M"),
+                        tags$h3(uiOutput("ov_tt_flights")),
                         tags$strong("Total flights")
                     ),
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3("18"),
+                        tags$h3(uiOutput("ov_tt_airlines")),
                         tags$strong("Total airlines")
                     )
                   ),
@@ -35,12 +35,12 @@ nav_eda_overview <- tagList(
                     width = 6,
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3("380"),
+                        tags$h3(uiOutput("ov_tt_airports")),
                         tags$strong("Total airports")
                     ),
                     div(class = "eda-card eda-card-text",
                         style = "margin-bottom: 20px;",
-                        tags$h3("7785"),
+                        tags$h3(uiOutput("ov_tt_routes")),
                         tags$strong("Total routes")
                     )
                   )
