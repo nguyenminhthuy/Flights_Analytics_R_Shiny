@@ -16,11 +16,11 @@ nav_pf_overview <- tagList(
                   tags$hr(class = "hr-main"),
                   
                   tags$strong("YEARS: "),
-                  tags$span("2019–2023"),
+                  textOutput("pf_ov_year_text", inline = TRUE),
                   tags$span(" | "),
                   
                   tags$strong("AIRLINES: "),
-                  tags$span("All airlines")
+                  textOutput("pf_ov_airline_text", inline = TRUE),
               )
             ),
             column(
@@ -43,7 +43,6 @@ nav_pf_overview <- tagList(
               div(class = "eda-card eda-card-text",
                   tags$h3("17.53%"),
                   tags$strong("Delay Rate")
-                  
               )
             ),
           )
@@ -59,9 +58,9 @@ nav_pf_overview <- tagList(
           # ===== YEAR SELECT =====
           tags$label(icon("calendar-days"), " Year"),
           selectInput(
-            inputId = "year_select",
+            inputId = "pf_ov_year_select",
             label = NULL,
-            choices = c("All", "2019", "2020", "2021", "2022", "2023"),
+            choices = NULL,
             selected = "All",
             width = "100%"
           ),
@@ -70,16 +69,16 @@ nav_pf_overview <- tagList(
           # ===== AIRLINE SELECT =====
           tags$label(icon("plane"), " Airline"),
           selectInput(
-            inputId = "airline_select",
+            inputId = "pf_ov_airline_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
           ),
           
           actionButton(
-            inputId = "apply_filter",
+            inputId = "pf_ov_apply_filter",
             label = "Apply Filter",
             icon = icon("filter"),
             class = "btn-apply-filter"

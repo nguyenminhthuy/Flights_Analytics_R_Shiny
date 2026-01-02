@@ -16,17 +16,17 @@ nav_pf_factors <- tagList(
                          tags$hr(class = "hr-main"),
                          
                          tags$strong("YEARS: "),
-                         tags$span("2020–2023"),
+                         textOutput("pf_ft_year_text", inline = TRUE),
                          
                          tags$span(" | "),
                          
                          tags$strong("AIRLINES: "),
-                         tags$span("Delta, United"),
+                         textOutput("pf_ft_airline_text", inline = TRUE),
                          
                          tags$span(" | "),
                          
                          tags$strong("SEASON: "),
-                         tags$span("Delta, United")
+                         textOutput("pf_ft_season_text", inline = TRUE),
                      )
                    ),
                    column(
@@ -65,9 +65,9 @@ nav_pf_factors <- tagList(
           # ===== YEAR SELECT =====
           tags$label(icon("calendar-days"), " Year"),
           selectInput(
-            inputId = "year_select",
+            inputId = "pf_ft_year_select",
             label = NULL,
-            choices = c("All", "2019", "2020", "2021", "2022", "2023"),
+            choices = NULL,
             selected = "All",
             width = "100%"
           ),
@@ -76,9 +76,9 @@ nav_pf_factors <- tagList(
           # ===== AIRLINE SELECT =====
           tags$label(icon("plane"), " Airline"),
           selectInput(
-            inputId = "airline_select",
+            inputId = "pf_ft_airline_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
@@ -87,16 +87,16 @@ nav_pf_factors <- tagList(
           # ===== SEASON  =====
           tags$label(icon("cloud-sun"), " Season"),
           selectInput(
-            inputId = "season_select",
+            inputId = "pf_ft_season_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
           ),
           
           actionButton(
-            inputId = "apply_filter",
+            inputId = "pf_ft_apply_filter",
             label = "Apply Filter",
             icon = icon("filter"),
             class = "btn-apply-filter"

@@ -16,22 +16,22 @@ nav_pf_localpatterns <- tagList(
                          tags$hr(class = "hr-main"),
                          
                          tags$strong("YEARS: "),
-                         tags$span("2019–2023"),
+                         textOutput("pf_lp_year_text", inline = TRUE),
                          
                          tags$span(" | "),
                          
                          tags$strong("AIRLINES: "),
-                         tags$span("All airlines"),
+                         textOutput("pf_lp_airline_text", inline = TRUE),
                          
                          tags$span(" | "),
                          
                          tags$strong("AIRPORT: "),
-                         tags$span("All airports"),
+                         textOutput("pf_lp_origin_text", inline = TRUE),
                          
                          tags$span(" | "),
                          
                          tags$strong("SEASON: "),
-                         tags$span("All Seasons")
+                         textOutput("pf_lp_season_text", inline = TRUE),
                      )
                    ),
                    column(
@@ -70,9 +70,9 @@ nav_pf_localpatterns <- tagList(
           # ===== YEAR SELECT =====
           tags$label(icon("calendar-days"), " Year"),
           selectInput(
-            inputId = "year_select",
+            inputId = "pf_lp_year_select",
             label = NULL,
-            choices = c("All", "2019", "2020", "2021", "2022", "2023"),
+            choices = NULL,
             selected = "All",
             width = "100%"
           ),
@@ -81,9 +81,9 @@ nav_pf_localpatterns <- tagList(
           # ===== AIRLINE SELECT =====
           tags$label(icon("plane"), " Airline"),
           selectInput(
-            inputId = "airline_select",
+            inputId = "pf_lp_airline_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
@@ -92,9 +92,9 @@ nav_pf_localpatterns <- tagList(
           # ===== ORIGIN AIRPORT  =====
           tags$label(icon("plane-departure"), " Airport"),
           selectInput(
-            inputId = "airport_select",
+            inputId = "pf_lp_airport_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
@@ -103,16 +103,16 @@ nav_pf_localpatterns <- tagList(
           # ===== SEASON  =====
           tags$label(icon("cloud-sun"), " Season"),
           selectInput(
-            inputId = "season_select",
+            inputId = "pf_lp_season_select",
             label = NULL,
-            choices = c("All", "Delta", "United", "American", "Southwest", "CA", "DD"),
+            choices = NULL,
             selected = "All",
             selectize = TRUE,   # 👈 search enabled
             width = "100%"
           ),
           
           actionButton(
-            inputId = "apply_filter",
+            inputId = "pf_lp_apply_filter",
             label = "Apply Filter",
             icon = icon("filter"),
             class = "btn-apply-filter"

@@ -602,6 +602,35 @@ fig_monthly_departures <- plot_ly(
   config(responsive = TRUE, 
          displayModeBar = FALSE)
 
+#==================================#
+# 3.2 Operational Performance
+# 3.2.1 Overview + With/Without Filter
+#----------------------------------#
+# On-time rate = Number of on-time flights / Total number of operated flights * 100
+# Delay rate = Number of delayed flights / Total number of operated flights * 100
+#----------------------------------#
+# This is often simply "100% - Ontime Rate - Canceled Rate - Divert Rate",
+# as every flight falls into one of these categories. The average delay time in
+# minutes is another common metric.
+#----------------------------------#
+# Note: Canceled and diverted flights are typically excluded from the on-time
+# performance calculation but included in the total pool of flight for overall performance metrics.
+#----------------------------------#
+# Cancelled rate = Number of canceled flights / Total number of scheduled flights * 100
+# Divert rate = Number of diverted flights / Total number of scheduled flights * 100
+#==================================#
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
