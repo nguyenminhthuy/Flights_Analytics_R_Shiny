@@ -1128,6 +1128,221 @@ arrival_delay_folium <- function(
       )
     )
 }
+
+#==================================#
+# 3.2.3 Factors + With/Without Filter
+# - Performance is evaluated relative to peer airlines under the selected filters.
+# - Results reflect comparative delay behavior rather than overall service quality.
+# Chart: INFLUENCE OF VARIOUS DELAYS
+#==================================#
+
+influence_of_delays <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  delay_cols <- c(
+    "DEP_DELAY",
+    "ARR_DELAY",
+    "DELAY_DUE_CARRIER",
+    "DELAY_DUE_WEATHER",
+    "DELAY_DUE_NAS",
+    "DELAY_DUE_SECURITY",
+    "DELAY_DUE_LATE_AIRCRAFT"
+  )
+  
+  if (!is.null(year)) 
+    df <- filter_by_year(df, year)
+  
+  if (!is.null(airline)) 
+    df <- filter_by_airline(df, airline)
+  
+  if (!is.null(season)) 
+    df <- filter_by_season(df, season)
+  
+  df <- df |> filter(DEP_DELAY > 0)
+  
+  values <- df |>
+    select(all_of(delay_cols)) |>
+    summarise(across(everything(), \(x) sum(x, na.rm = TRUE))) |>
+    unlist(use.names = FALSE)
+  
+  rel <- values / max(values, na.rm = TRUE)
+  z <- scales::rescale(rel, to = c(0, 1))
+  
+  # ---- màu Spectral giống matplotlib ----
+  pal <- grDevices::colorRampPalette(
+    RColorBrewer::brewer.pal(11, "Spectral")
+  )(100)
+  
+  col_idx <- round(z * 99) + 1
+  cell_colors <- pal[col_idx]
+  
+  rgb <- grDevices::col2rgb(cell_colors) / 255
+  luminance <- 0.299 * rgb[1, ] + 0.587 * rgb[2, ] + 0.114 * rgb[3, ]
+  
+  text_color <- ifelse(luminance < 0.5, "white", "black")
+  
+  plot_df <- data.frame(
+    y = factor(delay_cols, levels = rev(delay_cols)),
+    x = " ",
+    z = z,
+    label = sprintf("%.2f", rel),
+    text_color = text_color
+  )
+  
+  title_parts <- c("Influence of Delay Factors")
+  if (!is.null(year)) title_parts <- c(title_parts, paste("Year:", year))
+  if (!is.null(airline)) title_parts <- c(title_parts, paste("Airline:", airline))
+  if (!is.null(season)) title_parts <- c(title_parts, paste("Season:", season))
+  
+  fig <- plot_ly()
+  
+  # ---- HEATMAP (chỉ heatmap có z) ----
+  fig <- fig |>
+    add_heatmap(
+      data = plot_df,
+      x = ~x, y = ~y, z = ~z,
+      colorscale = "Spectral",
+      zmin = 0, zmax = 1,
+      showscale = TRUE
+    )
+  
+  # ---- TEXT TRẮNG ----
+  fig <- fig |>
+    add_trace(
+      data = subset(plot_df, text_color == "white"),
+      x = ~x, y = ~y,
+      text = ~label,
+      type = "scatter",
+      mode = "text",
+      textfont = list(color = "white", size = 12),
+      showlegend = FALSE
+    )
+  
+  # ---- TEXT ĐEN ----
+  fig <- fig |>
+    add_trace(
+      data = subset(plot_df, text_color == "black"),
+      x = ~x, y = ~y,
+      text = ~label,
+      type = "scatter",
+      mode = "text",
+      textfont = list(color = "black", size = 12),
+      showlegend = FALSE
+    )
+  
+  fig <- fig |>
+    layout(
+      title = paste(title_parts, collapse = " | "),
+      xaxis = list(showticklabels = FALSE),
+      yaxis = list(title = ""),
+      margin = list(l = 120, r = 40, t = 60, b = 40),
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)"
+    )|>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+  fig
+}
+
+#==================================#
+# Chart: Marginal Effect of Delay Components on Arrival Delay
+#==================================#
+delay_factor_interaction <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  delay_cols <- c(
+    "DEP_DELAY",
+    "DELAY_DUE_CARRIER",
+    "DELAY_DUE_WEATHER",
+    "DELAY_DUE_NAS",
+    "DELAY_DUE_SECURITY",
+    "DELAY_DUE_LATE_AIRCRAFT"
+  )
+  
+  if (!is.null(year)) df <- filter_by_year(df, year)
+  if (!is.null(airline)) df <- filter_by_airline(df, airline)
+  if (!is.null(season)) df <- filter_by_season(df, season)
+  
+  long_df <- df |>
+    pivot_longer(
+      cols = all_of(delay_cols),
+      names_to = "factor",
+      values_to = "delay_value"
+    ) |>
+    mutate(
+      delay_bin = case_when(
+        delay_value <= 0  ~ "0",
+        delay_value <= 5  ~ "1–5",
+        delay_value <= 15 ~ "5–15",
+        delay_value <= 30 ~ "15–30",
+        TRUE              ~ ">30"
+      )
+    )
+  
+  summary <- long_df |>
+    group_by(factor, delay_bin) |>
+    summarise(
+      mean_arr_delay = mean(ARR_DELAY, na.rm = TRUE),
+      n_flights = n(),
+      .groups = "drop"
+    ) |>
+    filter(n_flights > 500)
+  
+  summary$delay_bin <- factor(
+    summary$delay_bin,
+    levels = c("0", "1–5", "5–15", "15–30", ">30")
+  )
+  
+  factors <- unique(summary$factor)
+  
+  plots <- lapply(factors, function(f) {
+    df_f <- summary |> filter(factor == f)
+    
+    plot_ly(
+      df_f,
+      x = ~delay_bin, y = ~mean_arr_delay,
+      type = "scatter",
+      mode = "lines+markers",
+      showlegend = FALSE
+    )
+  })
+  
+  n_cols <- 3
+  n_rows <- ceiling(length(plots) / n_cols)
+  
+  fig <- subplot(
+    plots,
+    nrows = n_rows,
+    shareX = TRUE,
+    shareY = TRUE,
+    titleX = TRUE,
+    titleY = TRUE
+  )
+  
+  # ---- thêm tiêu đề cho từng facet ----
+  annotations <- lapply(seq_along(factors), function(i) {
+    list(
+      text = factors[i],
+      x = ((i - 1) %% n_cols + 0.5) / n_cols,
+      y = 1 - (floor((i - 1) / n_cols) / n_rows),
+      xref = "paper",
+      yref = "paper",
+      showarrow = FALSE,
+      font = list(size = 13)
+    )
+  })
+  
+  fig <- fig |>
+    layout(
+      title = "Marginal Effect of Delay Components on Arrival Delay",
+      annotations = annotations,
+      margin = list(t = 90),
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)"
+    )|>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+  fig
+}
+
 #==================================#
 # 3.2.4 Discruption + With/Without Filter
 # Summary

@@ -111,23 +111,17 @@ nav_pf_factors <- tagList(
           div(class = "container-fluid",
               fluidRow(style = "margin-bottom: 20px;",
                        column(
-                         width = 6,
+                         width = 3,
                          div(class = "eda-card",
-                             h3("Chart: INFLUENCE OF VARIOUS DELAYS"),
-                             p("Nội dung cột 1-2")
+                             plotlyOutput("pf_ft_influence_of_delays", height = "420px")
                          )
                        ),
                        
                        column(
-                         width = 6,
+                         width = 9,
                          div(class = "eda-card",
                              style = "margin-bottom: 20px;",
-                             h3("Chart: Marginal Effect of Delay Components on Arrival Delay"),
-                             p("Nội dung cột 1-2")
-                         ),
-                         div(class = "eda-card",
-                             h3("Chart: Reliability vs Performance of Delay Factors"),
-                             p("Nội dung cột 1-2")
+                             plotlyOutput("pf_ft_delay_factor_interaction", height = "420px")
                          )
                        )
               )

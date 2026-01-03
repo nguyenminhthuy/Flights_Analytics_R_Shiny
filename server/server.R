@@ -555,6 +555,50 @@ server <- function(input, output, session) {
     
   })
   
+  pf_ft_filtered_flights <- reactive({
+    
+    # Page load → no filter
+    if (input$pf_ft_apply_filter == 0) {
+      return(df_flights)
+    }
+    
+    df <- df_flights
+    
+    if (pf_ft_applied_year() != "All") {
+      df <- df[df$YEAR == pf_ft_applied_year(), ]
+    }
+    
+    if (pf_ft_applied_airline() != "All") {
+      df <- df[df$AIRLINE == pf_ft_applied_airline(), ]
+    }
+    
+    if (pf_ft_applied_season() != "All") {
+      df <- df[df$SEASON == pf_ft_applied_season(), ]
+    }
+    
+    df
+  })
+  
+  output$pf_ft_influence_of_delays <- renderPlotly({
+    
+    influence_of_delays(
+      df = pf_ft_filtered_flights(),
+      year    = if (pf_ft_applied_year() == "All") NULL else pf_ft_applied_year(),
+      airline = if (pf_ft_applied_airline() == "All") NULL else pf_ft_applied_airline(),
+      season  = if (pf_ft_applied_season() == "All") NULL else pf_ft_applied_season()
+    )
+  })
+  
+  output$pf_ft_delay_factor_interaction <- renderPlotly({
+    
+    delay_factor_interaction(
+      df = pf_ft_filtered_flights(),
+      year    = if (pf_ft_applied_year() == "All") NULL else pf_ft_applied_year(),
+      airline = if (pf_ft_applied_airline() == "All") NULL else pf_ft_applied_airline(),
+      season  = if (pf_ft_applied_season() == "All") NULL else pf_ft_applied_season()
+    )
+  })
+  
   output$pf_ft_year_text <- renderText({
     if (pf_ft_applied_year() == "All") "2019–2023"
     else pf_ft_applied_year()
@@ -569,6 +613,8 @@ server <- function(input, output, session) {
     if (pf_ft_applied_season() == "All") "All seasons"
     else pf_ft_applied_season()
   })
+  
+  
   
   # ==============================
   # DISCRUPTION
