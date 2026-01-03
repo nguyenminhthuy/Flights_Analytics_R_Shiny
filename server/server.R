@@ -334,91 +334,87 @@ server <- function(input, output, session) {
   # ==============================
   # PERFORMANCE - FACTORS
   # ==============================
-  # Update on Apply
+  pf_ft_applied_year    <- reactiveVal("All")
+  pf_ft_applied_airline <- reactiveVal("All")
+  pf_ft_applied_season  <- reactiveVal("All")
+  
   observeEvent(input$pf_ft_apply_filter, {
     
-    display_year(
-      if (input$pf_ft_year_select == "All") {
-        "2019–2023"
-      } else {
-        input$pf_ft_year_select
-      }
-    )
+    pf_ft_applied_year(input$pf_ft_year_select)
+    pf_ft_applied_airline(input$pf_ft_airline_select)
+    pf_ft_applied_season(input$pf_ft_season_select)
     
-    display_airline(
-      if (input$pf_ft_airline_select == "All") {
-        "All airlines"
-      } else {
-        input$pf_ft_airline_select
-      }
-    )
-    
-    display_season(
-      if (input$pf_ft_season_select == "All") {
-        "All seasons"
-      } else {
-        input$pf_ft_season_select
-      }
-    )
   })
   
-  # render output
   output$pf_ft_year_text <- renderText({
-    display_year()
+    if (pf_ft_applied_year() == "All") "2019–2023"
+    else pf_ft_applied_year()
   })
   
   output$pf_ft_airline_text <- renderText({
-    display_airline()
+    if (pf_ft_applied_airline() == "All") "All airlines"
+    else pf_ft_applied_airline()
   })
   
   output$pf_ft_season_text <- renderText({
-    display_season()
+    if (pf_ft_applied_season() == "All") "All seasons"
+    else pf_ft_applied_season()
   })
   
   # ==============================
   # DISCRUPTION
   # ==============================
-  # Update on Apply
+  dis_applied_year    <- reactiveVal("All")
+  dis_applied_airline <- reactiveVal("All")
+  dis_applied_season  <- reactiveVal("All")
+  
   observeEvent(input$dis_apply_filter, {
+    dis_applied_year(input$dis_year_select)
+    dis_applied_airline(input$dis_airline_select)
+    dis_applied_season(input$dis_season_select)
+  })
+  
+  dis_summary_data <- reactive({
     
-    display_year(
-      if (input$dis_year_select == "All") {
-        "2019–2023"
-      } else {
-        input$dis_year_select
-      }
-    )
+    # Page load → no filter
+    if (input$dis_apply_filter == 0) {
+      return(disruption_metrics(df_flights))
+    }
     
-    display_airline(
-      if (input$dis_airline_select == "All") {
-        "All airlines"
-      } else {
-        input$dis_airline_select
-      }
-    )
-    
-    display_season(
-      if (input$dis_season_select == "All") {
-        "All seasons"
-      } else {
-        input$dis_season_select
-      }
+    disruption_metrics(
+      df_flights,
+      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
+      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
+      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
     )
   })
   
-  # render output
+  output$dis_total_flight <- renderText({
+    format_compact(dis_summary_data()$dis_total_flight)
+  })
+  
+  output$dis_cancel_flight <- renderText({
+    format_compact(dis_summary_data()$dis_cancel_flight)
+  })
+  
+  output$dis_divert_flight <- renderText({
+    format_compact(dis_summary_data()$dis_divert_flight)
+  })
+  
   output$dis_year_text <- renderText({
-    display_year()
+    if (dis_applied_year() == "All") "2019–2023"
+    else dis_applied_year()
   })
   
   output$dis_airline_text <- renderText({
-    display_airline()
+    if (dis_applied_airline() == "All") "All airlines"
+    else dis_applied_airline()
   })
   
   output$dis_season_text <- renderText({
-    display_season()
+    if (dis_applied_season() == "All") "All seasons"
+    else dis_applied_season()
   })
-  
   
   
   

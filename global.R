@@ -730,6 +730,33 @@ local_patterns <- function(df,
   )
 }
 
+#==================================#
+# 3.2.4 Discruption + With/Without Filter
+# Summary
+#==================================#
+disruption_metrics <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  if (!is.null(year))
+    df <- filter_by_year(df, year)
+  
+  if (!is.null(airline))
+    df <- filter_by_airline(df, airline)
+  
+  if (!is.null(season))
+    df <- filter_by_season(df, season)
+  
+  total_flights <- nrow(df)
+  
+  cancelled <- sum(df$CANCELLED, na.rm = TRUE)
+  diverted  <- sum(df$DIVERTED,  na.rm = TRUE)
+  disrupted <- cancelled + diverted
+  
+  list(
+    dis_total_flight  = total_flights,
+    dis_cancel_flight = cancelled,
+    dis_divert_flight = diverted
+  )
+}
 
 
 

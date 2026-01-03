@@ -32,7 +32,7 @@ nav_eda_discruption <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("2.72%"),
+                         tags$h3(textOutput("dis_cancel_flight")),
                          tags$strong("Cancelled flights")
                          
                      )
@@ -40,15 +40,15 @@ nav_eda_discruption <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("0.2%"),
+                         tags$h3(textOutput("dis_divert_flight")),
                          tags$strong("Diverted flights")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("732K"),
-                         tags$strong("Total Disrupted Flights")
+                         tags$h3(textOutput("dis_total_flight")),
+                         tags$strong("Total Flights")
                          
                      )
                    ),
