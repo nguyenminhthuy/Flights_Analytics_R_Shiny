@@ -129,29 +129,21 @@ nav_pf_localpatterns <- tagList(
                 column(
                   width = 6,
                   div(class = "eda-card",
-                      style = "margin-bottom: 20px;",
-                      h3("Table: AIRPORT DELAY STABILITY"),
-                      p("Nội dung cột 1-2")
+                      style = "margin-bottom: 20px;", height = "250px",
+                      DT::dataTableOutput("pf_lp_airport_stability_table")
                   ),
                   div(class = "eda-card",
-                      h3("Table: ROUTING RANKING"),
-                      p("Nội dung cột 1-2")
+                      plotlyOutput("pf_lp_time_of_day", height = "350px")
                   )
                 ),
                 column(
                   width = 6,
                   div(class = "eda-card",
-                      h3("Chart: TIME OF DAY --> AVG ARRIVAL DELAY BY DEPARTURE HOUR"),
-                      p("Nội dung cột 1-2")
-                  )
-                )
-              ),
-              fluidRow(style = "margin-bottom: 20px;",
-                column(
-                  width = 12,
+                      style = "margin-bottom: 20px;", height = "250px",
+                      DT::dataTableOutput("pf_lp_routing_table")
+                  ),
                   div(class = "eda-card",
-                      h3("Map: Arrival delay by airport"),
-                      p("Nội dung cột 1-2")
+                      leafletOutput("pf_lp_arrival_delay_map", height = "350px")
                   )
                 )
               )

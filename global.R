@@ -947,6 +947,188 @@ local_patterns <- function(df,
 }
 
 #==================================#
+# Table: AIRPORT DELAY STABILITY
+#==================================#
+airport_delay_stability <- function(df, min_flights = 1000, year = NULL,
+                                    airline = NULL, season = NULL, origin = NULL) {
+  
+  if (!is.null(year))    df <- filter_by_year(df, year)
+  if (!is.null(airline)) df <- filter_by_airline(df, airline)
+  if (!is.null(season))  df <- filter_by_season(df, season)
+  if (!is.null(origin))  df <- filter_by_origin(df, origin)
+  
+  df |>
+    filter(CANCELLED == 0, DIVERTED == 0) |>
+    group_by(ORIGIN) |>
+    summarise(
+      n_flights     = n(),
+      avg_arr_delay = round(mean(ARR_DELAY, na.rm = TRUE), 2),
+      std_arr_delay = round(sd(ARR_DELAY, na.rm = TRUE), 2),
+      .groups = "drop"
+    ) |>
+    filter(n_flights >= min_flights) |>
+    arrange(desc(std_arr_delay))
+}
+
+#==================================#
+# Table: ROUTING RANKING
+#==================================#
+routing_ranking <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  if (!is.null(year)) {
+    df <- filter_by_year(df, year)
+  }
+  
+  if (!is.null(airline)) {
+    df <- filter_by_airline(df, airline)
+  }
+  
+  if (!is.null(season)) {
+    df <- filter_by_season(df, season)
+  }
+  
+  df |>
+    filter(
+      CANCELLED == 0,
+      DIVERTED == 0
+    ) |>
+    group_by(ROUTE) |>
+    summarise(
+      n_flights     = n(),
+      avg_arr_delay = round(mean(ARR_DELAY, na.rm = TRUE), 2),
+      .groups = "drop"
+    ) |>
+    arrange(desc(n_flights))
+}
+
+#==================================#
+# Chart: TIME OF DAY 
+# Avg departure delay by hour
+#==================================#
+time_of_day <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  if (!is.null(year)) {
+    df <- filter_by_year(df, year)
+  }
+  
+  if (!is.null(airline)) {
+    df <- filter_by_airline(df, airline)
+  }
+  
+  if (!is.null(season)) {
+    df <- filter_by_season(df, season)
+  }
+  
+  df_hourly <- df |>
+    filter(
+      CANCELLED == 0,
+      DIVERTED == 0
+    ) |>
+    group_by(DEP_HOUR) |>
+    summarise(
+      avg_dep_delay = round(mean(DEP_DELAY, na.rm = TRUE), 1),
+      .groups = "drop"
+    )
+  
+  plot_ly(
+    data = df_hourly,
+    x = ~DEP_HOUR,
+    y = ~avg_dep_delay,
+    type = "scatter",
+    mode = "lines+markers",
+    line = list(shape = "hv", width = 2),
+    marker = list(size = 7)
+  ) |>
+    layout(
+      showlegend = FALSE,
+      xaxis = list(
+        title = "Departure hour",
+        dtick = 1
+      ),
+      yaxis = list(
+        title = "Avg departure delay (minutes)"
+      ),
+      title = list(
+        text = "AVERAGE DEPARTURE DELAY BY TIME OF DAY",
+        x = 0.5,
+        font = list(size = 16, color = "#333", family = "Comic Sans MS")
+      ),
+      margin = list(l = 10, r = 10, t = 70, b = 10),
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)"
+    )|>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+}
+
+#==================================#
+# Map: Arrival delay by airport
+#==================================#
+arrival_delay_folium <- function(
+    df,
+    year = NULL,
+    airline = NULL,
+    season = NULL,
+    volume_quantile = 0.7,
+    tiles = "CartoDB.Positron"
+) {
+  
+  if (!is.null(year)) df <- filter_by_year(df, year)
+  if (!is.null(airline)) df <- filter_by_airline(df, airline)
+  if (!is.null(season)) df <- filter_by_season(df, season)
+  
+  df <- df |>
+    filter(
+      CANCELLED == 0,
+      DIVERTED == 0,
+      !is.na(ARR_DELAY),
+      !is.na(DEST_LAT),
+      !is.na(DEST_LON)
+    )
+  
+  airport_perf <- df |>
+    group_by(DEST, DEST_LAT, DEST_LON) |>
+    summarise(
+      n_flights = n(),
+      med_arr_delay = round(median(ARR_DELAY), 1),
+      .groups = "drop"
+    )
+  
+  q <- quantile(airport_perf$n_flights, volume_quantile)
+  airport_perf <- airport_perf |> filter(n_flights >= q)
+  
+  pal <- colorNumeric(
+    palette = c("yellow", "blue", "red"),
+    domain = airport_perf$med_arr_delay
+  )
+  
+  radius_fun <- function(x) scales::rescale(x, to = c(6, 14))
+  
+  leaflet(airport_perf) |>
+    addProviderTiles(tiles) |>
+    
+    addCircleMarkers(
+      lng = ~DEST_LON,
+      lat = ~DEST_LAT,
+      radius = ~radius_fun(n_flights),
+      fillColor = ~pal(med_arr_delay),
+      fillOpacity = 0.75,
+      color = NA,
+      
+      popup = ~paste0(
+        "<b>", DEST, "</b><br>",
+        "Median delay: ", med_arr_delay, " min<br>",
+        "Flights: ", format(n_flights, big.mark = ",")
+      ),
+      
+      clusterOptions = markerClusterOptions(
+        disableClusteringAtZoom = 5,
+        maxClusterRadius = 60,
+        spiderfyOnMaxZoom = TRUE
+      )
+    )
+}
+#==================================#
 # 3.2.4 Discruption + With/Without Filter
 # Summary
 #==================================#

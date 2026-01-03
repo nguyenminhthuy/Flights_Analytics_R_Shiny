@@ -331,6 +331,108 @@ server <- function(input, output, session) {
     )
   })
   
+  pf_lp_filtered_flights <- reactive({
+    
+    # Page load → no filter
+    if (input$pf_lp_apply_filter == 0) {
+      return(df_flights)
+    }
+    
+    df <- df_flights
+    
+    if (pf_lp_applied_year() != "All") {
+      df <- df[df$YEAR == pf_lp_applied_year(), ]
+    }
+    
+    if (pf_lp_applied_airline() != "All") {
+      df <- df[df$AIRLINE == pf_lp_applied_airline(), ]
+    }
+    
+    if (pf_lp_applied_origin() != "All") {
+      df <- df[df$ORIGIN == pf_lp_applied_origin(), ]
+    }
+    
+    if (pf_lp_applied_season() != "All") {
+      df <- df[df$SEASON == pf_lp_applied_season(), ]
+    }
+    
+    df
+  })
+  
+  pf_lp_airport_stability <- reactive({
+    
+    airport_delay_stability(
+      pf_lp_filtered_flights()
+    )
+    
+  })
+  
+  pf_lp_routing_table <- reactive({
+    
+    df <- pf_lp_filtered_flights()
+    
+    routing_ranking(
+      df,
+      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
+      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
+      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
+    )
+  })
+  
+  pf_lp_filtered_flights <- reactive({
+    
+    if (input$pf_lp_apply_filter == 0) {
+      return(df_flights)
+    }
+    
+    df <- df_flights
+    
+    if (pf_lp_applied_year() != "All") {
+      df <- df[df$YEAR == pf_lp_applied_year(), ]
+    }
+    
+    if (pf_lp_applied_airline() != "All") {
+      df <- df[df$AIRLINE == pf_lp_applied_airline(), ]
+    }
+    
+    if (pf_lp_applied_origin() != "All") {
+      df <- df[df$ORIGIN == pf_lp_applied_origin(), ]
+    }
+    
+    if (pf_lp_applied_season() != "All") {
+      df <- df[df$SEASON == pf_lp_applied_season(), ]
+    }
+    
+    df
+  })
+  
+  pf_lp_filtered_flights <- reactive({
+    
+    if (input$pf_lp_apply_filter == 0) {
+      return(df_flights)
+    }
+    
+    df <- df_flights
+    
+    if (pf_lp_applied_year() != "All") {
+      df <- df[df$YEAR == pf_lp_applied_year(), ]
+    }
+    
+    if (pf_lp_applied_airline() != "All") {
+      df <- df[df$AIRLINE == pf_lp_applied_airline(), ]
+    }
+    
+    if (pf_lp_applied_origin() != "All") {
+      df <- df[df$ORIGIN == pf_lp_applied_origin(), ]
+    }
+    
+    if (pf_lp_applied_season() != "All") {
+      df <- df[df$SEASON == pf_lp_applied_season(), ]
+    }
+    
+    df
+  })
+  
   output$pf_lp_total_flights <- renderText({
     format_compact(pf_lp_summary_data()$total_flights)
   })
@@ -341,6 +443,81 @@ server <- function(input, output, session) {
   
   output$pf_lp_arr_delay <- renderText({
     paste0(pf_lp_summary_data()$avg_arr_delay, " min")
+  })
+  
+  output$pf_lp_airport_stability_table <- DT::renderDT({
+    
+    df_tbl <- airport_delay_stability(
+      df_flights,
+      min_flights = 1000,
+      year    = if (pf_lp_applied_year()    == "All") NULL else pf_lp_applied_year(),
+      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
+      season  = if (pf_lp_applied_season()  == "All") NULL else pf_lp_applied_season(),
+      origin  = if (pf_lp_applied_origin()  == "All") NULL else pf_lp_applied_origin()
+    )
+    
+    DT::datatable(
+      df_tbl,
+      rownames = FALSE,        # ❌ bỏ cột index
+      extensions = "Scroller",
+      options = list(
+        autoWidth = FALSE,
+        scrollY = 250,
+        scrollCollapse = TRUE,
+        scroller = TRUE,
+        pageLength = 10,
+        columnDefs = list(
+          list(width = "70px",  targets = 0), # Airport
+          list(width = "100px", targets = 1), # n_flights
+          list(width = "100px", targets = 2), # avg delay
+          list(width = "100px", targets = 3)  # std
+        )
+      ),
+      class = "stripe hover compact"
+    )
+  })
+  
+  output$pf_lp_routing_table <- DT::renderDT({
+    
+    DT::datatable(
+      pf_lp_routing_table(),
+      rownames = FALSE,
+      extensions = "Scroller",
+      options = list(
+        scrollY = 250,
+        scrollCollapse = TRUE,
+        scroller = TRUE,
+        pageLength = 10,
+        lengthMenu = c(10, 25, 50, 100),
+        autoWidth = FALSE,
+        dom = "lftip",
+        columnDefs = list(
+          list(width = "140px", targets = 0),
+          list(className = "dt-right", targets = c(1, 2))
+        )
+      ),
+      class = "stripe hover compact"
+    )
+  })
+  
+  output$pf_lp_time_of_day <- renderPlotly({
+    
+    time_of_day(
+      df = pf_lp_filtered_flights(),
+      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
+      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
+      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
+    )
+  })
+  
+  output$pf_lp_arrival_delay_map <- renderLeaflet({
+    
+    arrival_delay_folium(
+      df = pf_lp_filtered_flights(),
+      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
+      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
+      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
+    )
   })
   
   output$pf_lp_year_text <- renderText({
