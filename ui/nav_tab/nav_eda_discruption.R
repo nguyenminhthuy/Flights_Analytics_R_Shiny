@@ -111,31 +111,22 @@ nav_eda_discruption <- tagList(
           div(class = "container-fluid",
               fluidRow(style = "margin-bottom: 20px;",
                        column(
-                         width = 6,
+                         width = 7,
                          div(class = "eda-card",
                              style = "margin-bottom: 20px;",
-                             h3("Chart: Flight Disruption Rate Over Time (Cancelled vs Diverted)"),
-                             p("Nội dung cột 1-2")
-                         ),
-                         div(class = "eda-card",
-                             h3("Chart: Share of Disruption Causes"),
-                             p("Nội dung cột 1-2")
+                             plotlyOutput(
+                               outputId = "dis_plot_disruption_bar",
+                               height = "500"
+                             )
                          )
                        ),
                        column(
-                         width = 6,
+                         width = 5,
                          div(class = "eda-card",
-                             h3("?"),
-                             p("Nội dung cột 1-2")
-                         )
-                       )
-              ),
-              fluidRow(style = "margin-bottom: 20px;",
-                       column(
-                         width = 12,
-                         div(class = "eda-card",
-                             h3("?"),
-                             p("Nội dung cột 1-2")
+                             plotlyOutput(
+                               outputId = "dis_plot_cause_donut",
+                               height = "500"
+                             )
                          )
                        )
               )

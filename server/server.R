@@ -644,6 +644,30 @@ server <- function(input, output, session) {
     )
   })
   
+  dis_filtered_flights <- reactive({
+    df_flights   
+  })
+  
+  output$dis_plot_disruption_bar <- renderPlotly({
+    
+    plot_disruption_bar(
+      df = dis_filtered_flights(),
+      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
+      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
+      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
+    )
+  })
+  
+  output$dis_plot_cause_donut <- renderPlotly({
+    
+    plot_cause_donut(
+      df = dis_filtered_flights(),
+      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
+      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
+      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
+    )
+  })
+  
   output$dis_total_flight <- renderText({
     format_compact(dis_summary_data()$dis_total_flight)
   })

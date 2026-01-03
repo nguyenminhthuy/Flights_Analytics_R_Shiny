@@ -1371,9 +1371,153 @@ disruption_metrics <- function(df, year = NULL, airline = NULL, season = NULL) {
   )
 }
 
+plot_disruption_bar <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  if (!is.null(year)) 
+    df <- df |> filter(YEAR %in% year)
+  
+  if (!is.null(airline)) 
+    df <- df |> filter(AIRLINE %in% airline)
+  
+  if (!is.null(season)) 
+    df <- df |> filter(SEASON %in% season)
+  
+  df_disruption <- df |>
+    mutate(
+      DISRUPTION_TYPE = case_when(
+        CANCELLED == 1 ~ "Cancelled",
+        DIVERTED == 1  ~ "Diverted",
+        TRUE ~ NA_character_
+      )
+    ) |>
+    filter(!is.na(DISRUPTION_TYPE))
+  
+  df_grouped <- df_disruption |>
+    group_by(YEAR, SEASON, DISRUPTION_TYPE) |>
+    summarise(COUNT = n(), .groups = "drop")
+  
+  total_per_year <- df |>
+    group_by(YEAR) |>
+    summarise(TOTAL = n(), .groups = "drop")
+  
+  df_grouped <- df_grouped |>
+    left_join(total_per_year, by = "YEAR") |>
+    mutate(RATE = COUNT / TOTAL * 100)
+  
+  p <- ggplot(
+    df_grouped,
+    aes(x = YEAR, y = RATE, fill = DISRUPTION_TYPE)
+  ) +
+    geom_col(position = "stack") +
+    facet_wrap(~ SEASON, ncol = 2) +
+    scale_y_continuous(labels = scales::percent_format(scale = 1)) +
+    labs(
+      title = "Flight Disruption Rate by Season",
+      x = "Year",
+      y = "Disruption Rate (%)",
+      fill = "Disruption Type"
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      legend.position = "bottom",
+      strip.text = element_text(face = "bold"),
+      plot.title = element_text(hjust = 0.5),
+      panel.background = element_rect(fill = "transparent", color = NA),
+      plot.background  = element_rect(fill = "transparent", color = NA),
+      strip.background = element_rect(fill = "transparent", color = NA)
+    )
+  
+  # ---------------- Convert to plotly ----------------
+  ggplotly(p, tooltip = c("x", "y", "fill")) |>
+    layout(
+      legend = list(
+        orientation = "h",
+        x = 0.5,
+        xanchor = "center",
+        y = 1.02,
+        yanchor = "bottom"
+      ),
+      margin = list(t = 110),   # chừa chỗ title + legend
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor  = "rgba(0,0,0,0)"
+    ) |>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+}
 
-
-
+#==================================#
+# Chart: Share of Disruption Causes
+#==================================#
+plot_cause_donut <- function(df, year = NULL, airline = NULL, season = NULL) {
+  
+  if (!is.null(year)) df <- filter_by_year(df, year)
+  if (!is.null(airline)) df <- filter_by_airline(df, airline)
+  if (!is.null(season)) df <- filter_by_season(df, season)
+  
+  causes <- c(
+    "DELAY_DUE_CARRIER",
+    "DELAY_DUE_WEATHER",
+    "DELAY_DUE_NAS",
+    "DELAY_DUE_SECURITY",
+    "DELAY_DUE_LATE_AIRCRAFT"
+  )
+  
+  cause_labels <- c(
+    DELAY_DUE_CARRIER = "Delay due Carrier",
+    DELAY_DUE_WEATHER = "Delay due Weather",
+    DELAY_DUE_NAS = "Delay due NAS",
+    DELAY_DUE_SECURITY = "Delay due Security",
+    DELAY_DUE_LATE_AIRCRAFT = "Delay due Late Aircraft"
+  )
+  
+  df_long <- df |>
+    select(all_of(causes)) |>
+    pivot_longer(
+      cols = everything(),
+      names_to = "CAUSE",
+      values_to = "DELAY_MIN"
+    ) |>
+    filter(DELAY_MIN > 0)
+  
+  df_grouped <- df_long |>
+    group_by(CAUSE) |>
+    summarise(TOTAL_DELAY = sum(DELAY_MIN), .groups = "drop") |>
+    mutate(
+      RATE = TOTAL_DELAY / sum(TOTAL_DELAY) * 100,
+      CAUSE_LABEL = cause_labels[CAUSE]
+    ) |>
+    arrange(desc(RATE))
+  
+  # highlight phần lớn nhất
+  pull <- rep(0, nrow(df_grouped))
+  pull[which.max(df_grouped$RATE)] <- 0.1
+  
+  fig <- plot_ly(
+    data = df_grouped,
+    labels = ~CAUSE_LABEL,
+    values = ~RATE,
+    type = "pie",
+    hole = 0.5,
+    pull = pull,
+    textinfo = "label+percent",
+    hovertemplate = "%{label}: %{value:.2f}%<extra></extra>",
+    domain = list(
+      x = c(0, 0.6),   # 👈 ép pie sang trái
+      y = c(0, 1)
+    )
+  )
+  
+  fig <- fig |>
+    layout(
+      title = list(text = "Share of Disruption Causes"),
+      showlegend = FALSE,
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor  = "rgba(0,0,0,0)"
+    ) |>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+  fig
+}
 
 
 
