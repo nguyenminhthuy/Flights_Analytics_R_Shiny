@@ -192,9 +192,6 @@ server <- function(input, output, session) {
     pf_ov_applied_airline(input$pf_ov_airline_select)
   })
   
-  #----------------------------------#
-  # RUN ONLY ON APPLY
-  #----------------------------------#
   pf_ov_filtered_flights <- reactive({
     
     # Page load → no filter
@@ -215,9 +212,6 @@ server <- function(input, output, session) {
     df
   })
   
-  #----------------------------------#
-  # SUMMARY (FAST, NO FILTER HERE)
-  #----------------------------------#
   pf_ov_summary_data <- reactive({
     
     df <- pf_ov_filtered_flights()
@@ -239,9 +233,39 @@ server <- function(input, output, session) {
     )
   })
   
-  #----------------------------------#
+  pf_ov_monthly_volume_delay <- reactive({
+    
+    # Page load → no filter
+    if (input$pf_ov_apply_filter == 0) {
+      return(
+        monthly_volume_delay(df_flights)
+      )
+    }
+    
+    monthly_volume_delay(
+      df_flights,
+      year    = if (pf_ov_applied_year() == "All") NULL else pf_ov_applied_year(),
+      airline = if (pf_ov_applied_airline() == "All") NULL else pf_ov_applied_airline()
+    )
+  })
+  
+  pf_ov_delay_causes_chart <- reactive({
+    
+    # Page load → no filter
+    if (input$pf_ov_apply_filter == 0) {
+      return(
+        delay_causes(df_flights)
+      )
+    }
+    
+    delay_causes(
+      df_flights,
+      year    = if (pf_ov_applied_year() == "All") NULL else pf_ov_applied_year(),
+      airline = if (pf_ov_applied_airline() == "All") NULL else pf_ov_applied_airline()
+    )
+  })
+  
   # RENDER CARDS
-  #----------------------------------#
   output$pf_ov_total_flights <- renderText({
     format_compact(pf_ov_summary_data()$total_flights)
   })
@@ -254,9 +278,17 @@ server <- function(input, output, session) {
     paste0(pf_ov_summary_data()$delay_rate, "%")
   })
   
-  #----------------------------------#
+  # Render charts
+  
+  output$pf_ov_monthly_volume_delay <- renderPlotly({
+    pf_ov_monthly_volume_delay()
+  })
+  
+  output$pf_ov_delay_causes <- renderPlotly({
+    pf_ov_delay_causes_chart()
+  })
+  
   # RENDER TEXT 
-  #----------------------------------#
   output$pf_ov_year_text <- renderText({
     if (pf_ov_applied_year() == "All") "2019–2023" 
     else pf_ov_applied_year()

@@ -683,6 +683,222 @@ ontime_delay_summary <- function(df, year = NULL, airline = NULL) {
 }
 
 #==================================#
+# Chart: MONTHLY FLIGHT VOLUME VS AVERAGE DELAY
+#==================================#
+monthly_volume_delay <- function(df, year = NULL, airline = NULL) {
+  
+  if (!is.null(year)) {
+    df <- filter_by_year(df, year)
+  }
+  
+  if (!is.null(airline)) {
+    df <- filter_by_airline(df, airline)
+  }
+  
+  df_monthly_perf <- ontime_delay_by(df, group_cols = "MONTH") |>
+    select(MONTH, n_operated, avg_delay) |>
+    mutate(
+      text = format_compact(n_operated),
+      avg_delay = round(avg_delay, 1)
+    )
+  
+  fig <- plot_ly()
+  
+  # --- Bar: number of flights ---
+  fig <- fig |>
+    add_bars(
+      data = df_monthly_perf,
+      x = ~MONTH, y = ~n_operated,
+      name = "Number of Flights",
+      yaxis = "y",
+      text = ~text,
+      textposition = "outside",
+      opacity = 0.65,
+      marker = list(color = "#D97706"),
+      hovertemplate = paste(
+        "<b>Month:</b> %{x}<br>",
+        "<b>Flights:</b> %{y:,}<br>",
+        "<extra></extra>"
+      )
+    )
+  
+  # --- Line: average delay ---
+  fig <- fig |>
+    add_trace(
+      data = df_monthly_perf,
+      x = ~MONTH, y = ~avg_delay,
+      name = "Avg Departure Delay (min)",
+      type = "scatter",
+      mode = "lines+markers",
+      yaxis = "y2",
+      line = list(color = "#2563EB", width = 2, dash = "dash"),
+      marker = list(size = 8)
+    )
+  
+  fig <- fig |>
+    layout(
+      xaxis = list(
+        type = "category",
+        showgrid = FALSE
+      ),
+      yaxis = list(
+        title = "Number of Flights",
+        showgrid = FALSE
+      ),
+      yaxis2 = list(
+        title = "Avg Delay (minutes)",
+        overlaying = "y",
+        side = "right",
+        showgrid = FALSE
+      ),
+      showlegend = FALSE,
+      title = list(
+        text = "MONTHLY FLIGHT VOLUME VS AVERAGE DELAY",
+        x = 0.5,
+        xanchor = "center",
+        font = list(size = 16, color = "#333", family = "Comic Sans MS")
+      ),
+      margin = list(l = 10, r = 10, t = 70, b = 10),
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)"
+    )|>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+  fig
+}
+
+#==================================#
+# Chart: DELAY CAUSES
+#==================================#
+delay_causes <- function(df, year = NULL, airline = NULL) {
+  
+  if (!is.null(year)) {
+    df <- filter_by_year(df, year)
+  }
+  
+  if (!is.null(airline)) {
+    df <- filter_by_airline(df, airline)
+  }
+  
+  delay_cols <- c(
+    "DELAY_DUE_CARRIER",
+    "DELAY_DUE_WEATHER",
+    "DELAY_DUE_NAS",
+    "DELAY_DUE_SECURITY",
+    "DELAY_DUE_LATE_AIRCRAFT"
+  )
+  
+  cause_map <- c(
+    "DELAY_DUE_LATE_AIRCRAFT" = "Late Aircraft",
+    "DELAY_DUE_NAS" = "NAS",
+    "DELAY_DUE_CARRIER" = "Carrier",
+    "DELAY_DUE_WEATHER" = "Weather",
+    "DELAY_DUE_SECURITY" = "Security"
+  )
+  
+  df_delay_causes <- df |>
+    select(all_of(delay_cols)) |>
+    summarise(across(everything(), \(x) sum(x, na.rm = TRUE))) |>
+    pivot_longer(
+      everything(),
+      names_to = "cause",
+      values_to = "delay_minutes"
+    ) |>
+    mutate(
+      pct = delay_minutes / sum(delay_minutes) * 100,
+      label = cause_map[cause],
+      n_blocks = round(pct)
+    )
+  
+  # ---- Fix rounding so total = 100 ----
+  diff <- 100 - sum(df_delay_causes$n_blocks)
+  if (diff != 0) {
+    idx <- which.max(df_delay_causes$n_blocks)
+    df_delay_causes$n_blocks[idx] <- df_delay_causes$n_blocks[idx] + diff
+  }
+  
+  df_delay_causes <- df_delay_causes |>
+    arrange(desc(pct))
+  
+  # ---- Build waffle layout ----
+  waffle <- unlist(
+    mapply(
+      function(label, n) rep(label, n),
+      df_delay_causes$label,
+      df_delay_causes$n_blocks,
+      SIMPLIFY = FALSE
+    )
+  )
+  
+  rows <- 5
+  cols <- 20
+  x <- rep(seq_len(cols) - 1, times = rows)
+  y <- rep(rev(seq_len(rows) - 1), each = cols)
+  
+  color_map <- c(
+    "Late Aircraft" = "#FDBA74",
+    "NAS" = "#93C5FD",
+    "Carrier" = "#86EFAC",
+    "Weather" = "#FCA5A5",
+    "Security" = "#D1D5DB"
+  )
+  
+  fig <- plot_ly(height = 320)
+  
+  for (cause in names(color_map)) {
+    
+    mask <- waffle == cause
+    pct <- df_delay_causes$pct[df_delay_causes$label == cause][1]
+    
+    fig <- fig |>
+      add_trace(
+        x = x[mask], y = y[mask],
+        type = "scatter",
+        mode = "markers",
+        name = cause,
+        marker = list(
+          size = 22,
+          symbol = "square",
+          color = color_map[[cause]],
+          line = list(width = 1, color = "#f5f5f5")
+        ),
+        hovertemplate = paste0(
+          "<b>", cause, "</b><br>",
+          sprintf("%.1f", pct), "% of total delay<br>",
+          "<extra></extra>"
+        )
+      )
+  }
+  
+  fig <- fig |>
+    layout(
+      title = list(
+        text = paste0(
+          "Flight Delay Breakdown by Causes",
+          "<br><span style='font-size:14px;color:#666;font-style:italic'>",
+          "Share of Total Delay Minutes</span>"
+        ),
+        x = 0.5,
+        xanchor = "center"
+      ),
+      legend = list(
+        orientation = "h",
+        yanchor = "top", y = 1.2,
+        xanchor = "center", x = 0.5,
+        font = list(size = 12)
+      ),
+      margin = list(l = 20, r = 20, t = 140, b = 20),
+      xaxis = list(visible = FALSE, range = c(-0.5, 19.5)),
+      yaxis = list(visible = FALSE, range = c(-0.5, 4.5)),
+      showlegend = TRUE,
+      paper_bgcolor = "rgba(0,0,0,0)",
+      plot_bgcolor = "rgba(0,0,0,0)"
+    )|>
+    config(responsive = TRUE, 
+           displayModeBar = FALSE)
+  fig
+}
+#==================================#
 # 3.2.2 Local Patterns + With/Without Filter
 # Summary
 #==================================#

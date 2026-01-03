@@ -92,18 +92,12 @@ nav_pf_overview <- tagList(
           width = 9,
           div(class = "eda-card",
               style = "margin-bottom: 20px;",
-              h3("Chart: MONTHLY DISTRIBUTION OF ON-TIME & DELAYED FLIGHTS"),
-              p("Nội dung cột 1-2")
+              plotlyOutput("pf_ov_monthly_volume_delay", height = "350")
           ),
           div(class = "eda-card",
               style = "margin-bottom: 20px;",
-              h3("Chart: MONTHLY FLIGHT VOLUME VS AVERAGE DELAY"),
-              p("Nội dung cột 1-2")
-          ),
-          div(class = "eda-card",
-              style = "margin-bottom: 20px;",
-              h3("Chart: Delay Causes"),
-              p("Nội dung cột 1-2")
+              plotlyOutput("pf_ov_delay_causes", height = "300")
+
           )
         )
       )
