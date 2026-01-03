@@ -180,14 +180,10 @@ server <- function(input, output, session) {
     )
   })
   
-  #----------------------------------#
+  # ==============================
   # PERFORMANCE - OVERVIEW
-  #----------------------------------#
-
   # ==============================
-  # ==============================
-  # PF_OV APPLIED FILTER VALUES
-  # ==============================
+  
   pf_ov_applied_year    <- reactiveVal("All")
   pf_ov_applied_airline <- reactiveVal("All")
   
@@ -196,9 +192,9 @@ server <- function(input, output, session) {
     pf_ov_applied_airline(input$pf_ov_airline_select)
   })
   
-  # ==============================
-  # PF_OV FILTERED DATA (RUN ONLY ON APPLY)
-  # ==============================
+  #----------------------------------#
+  # RUN ONLY ON APPLY
+  #----------------------------------#
   pf_ov_filtered_flights <- reactive({
     
     # Page load → no filter
@@ -219,9 +215,9 @@ server <- function(input, output, session) {
     df
   })
   
-  # ==============================
-  # PF_OV SUMMARY (FAST, NO FILTER HERE)
-  # ==============================
+  #----------------------------------#
+  # SUMMARY (FAST, NO FILTER HERE)
+  #----------------------------------#
   pf_ov_summary_data <- reactive({
     
     df <- pf_ov_filtered_flights()
@@ -243,9 +239,9 @@ server <- function(input, output, session) {
     )
   })
   
-  # ==============================
-  # PF_OV RENDER KPI CARDS
-  # ==============================
+  #----------------------------------#
+  # RENDER CARDS
+  #----------------------------------#
   output$pf_ov_total_flights <- renderText({
     format_compact(pf_ov_summary_data()$total_flights)
   })
@@ -258,9 +254,9 @@ server <- function(input, output, session) {
     paste0(pf_ov_summary_data()$delay_rate, "%")
   })
   
-  # ==============================
-  # PF_OV RENDER FILTER TEXT (APPLIED ONLY)
-  # ==============================
+  #----------------------------------#
+  # RENDER TEXT 
+  #----------------------------------#
   output$pf_ov_year_text <- renderText({
     if (pf_ov_applied_year() == "All") "2019–2023" 
     else pf_ov_applied_year()
@@ -271,67 +267,73 @@ server <- function(input, output, session) {
     else pf_ov_applied_airline()
   })
   
-
-  
-  #----------------------------------#
+  # ==============================
   # PERFORMANCE - LOCAL PATTERNS
-  #----------------------------------#
-  # Update on Apply
+  # ==============================
+  
+  pf_lp_applied_year    <- reactiveVal("All")
+  pf_lp_applied_airline <- reactiveVal("All")
+  pf_lp_applied_origin  <- reactiveVal("All")
+  pf_lp_applied_season  <- reactiveVal("All")
+  
   observeEvent(input$pf_lp_apply_filter, {
+    pf_lp_applied_year(input$pf_lp_year_select)
+    pf_lp_applied_airline(input$pf_lp_airline_select)
+    pf_lp_applied_origin(input$pf_lp_airport_select)
+    pf_lp_applied_season(input$pf_lp_season_select)
+  })
+  
+  pf_lp_summary_data <- reactive({
     
-    display_year(
-      if (input$pf_lp_year_select == "All") {
-        "2019–2023"
-      } else {
-        input$pf_lp_year_select
-      }
-    )
+    # Page load → no filter
+    if (input$pf_lp_apply_filter == 0) {
+      return(local_patterns(df_flights))
+    }
     
-    display_airline(
-      if (input$pf_lp_airline_select == "All") {
-        "All airlines"
-      } else {
-        input$pf_lp_airline_select
-      }
-    )
-    
-    display_origin(
-      if (input$pf_lp_airport_select == "All") {
-        "All airports"
-      } else {
-        input$pf_lp_airport_select
-      }
-    )
-    
-    display_season(
-      if (input$pf_lp_season_select == "All") {
-        "All seasons"
-      } else {
-        input$pf_lp_season_select
-      }
+    local_patterns(
+      df_flights,
+      year = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
+      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
+      origin_airport = if (pf_lp_applied_origin() == "All") NULL else pf_lp_applied_origin(),
+      season = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
     )
   })
   
-  # render output
+  output$pf_lp_total_flights <- renderText({
+    format_compact(pf_lp_summary_data()$total_flights)
+  })
+  
+  output$pf_lp_dep_delay <- renderText({
+    paste0(pf_lp_summary_data()$avg_dep_delay, " min")
+  })
+  
+  output$pf_lp_arr_delay <- renderText({
+    paste0(pf_lp_summary_data()$avg_arr_delay, " min")
+  })
+  
   output$pf_lp_year_text <- renderText({
-    display_year()
+    if (pf_lp_applied_year() == "All") "2019–2023"
+    else pf_lp_applied_year()
   })
   
   output$pf_lp_airline_text <- renderText({
-    display_airline()
+    if (pf_lp_applied_airline() == "All") "All airlines"
+    else pf_lp_applied_airline()
   })
   
   output$pf_lp_origin_text <- renderText({
-    display_origin()
+    if (pf_lp_applied_origin() == "All") "All airports"
+    else pf_lp_applied_origin()
   })
   
   output$pf_lp_season_text <- renderText({
-    display_season()
+    if (pf_lp_applied_season() == "All") "All seasons"
+    else pf_lp_applied_season()
   })
   
-  #----------------------------------#
+  # ==============================
   # PERFORMANCE - FACTORS
-  #----------------------------------#
+  # ==============================
   # Update on Apply
   observeEvent(input$pf_ft_apply_filter, {
     
@@ -373,9 +375,9 @@ server <- function(input, output, session) {
     display_season()
   })
   
-  #----------------------------------#
+  # ==============================
   # DISCRUPTION
-  #----------------------------------#
+  # ==============================
   # Update on Apply
   observeEvent(input$dis_apply_filter, {
     

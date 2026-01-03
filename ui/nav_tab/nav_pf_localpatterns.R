@@ -37,7 +37,7 @@ nav_pf_localpatterns <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("75K"),
+                         tags$h3(textOutput("pf_lp_total_flights")),
                          tags$strong("Total flights")
                          
                      )
@@ -45,18 +45,18 @@ nav_pf_localpatterns <- tagList(
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("10.05"),
+                         tags$h3(textOutput("pf_lp_dep_delay")),
                          tags$strong("Dep Delay (min)")
                      )
                    ),
                    column(
                      width = 2,
                      div(class = "eda-card eda-card-text",
-                         tags$h3("5.31"),
+                         tags$h3(textOutput("pf_lp_arr_delay")),
                          tags$strong("Arr Delay (min)")
                          
                      )
-                   ),
+                   )
           )
       ),
       

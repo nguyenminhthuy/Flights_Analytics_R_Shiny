@@ -652,37 +652,6 @@ filter_by_season <- function(df, season) {
 # On-time Performance & Delays
 #==================================#
 
-filter_by_year <- function(df, year) {
-  if (!is.null(year)) {
-    df <- filter(df, YEAR == year)
-  }
-  return(df)
-}
-
-filter_by_airline <- function(df, airline) {
-  if (!is.null(airline)) {
-    df <- filter(df, AIRLINE == airline)
-  }
-  return(df)
-}
-
-filter_by_origin_airport <- function(df, airport) {
-  if (!is.null(airport)) {
-    df <- filter(df, ORIGIN == airport)
-  }
-  return(df)
-}
-
-filter_by_season <- function(df, season) {
-  if (!is.null(season)) {
-    df <- filter(df, SEASON == season)
-  }
-  return(df)
-}
-
-#==================================#
-# On-time Performance & Delays
-#==================================#
 ontime_delay_summary <- function(df, year = NULL, airline = NULL) {
   
   if (!is.null(year) && year != "All") {
@@ -713,7 +682,53 @@ ontime_delay_summary <- function(df, year = NULL, airline = NULL) {
   )
 }
 
-
+#==================================#
+# 3.2.2 Local Patterns + With/Without Filter
+# Summary
+#==================================#
+local_patterns <- function(df,
+                           year = NULL,
+                           airline = NULL,
+                           origin_airport = NULL,
+                           season = NULL) {
+  
+  if (!is.null(year)) {
+    df <- filter_by_year(df, year)
+  }
+  
+  if (!is.null(airline)) {
+    df <- filter_by_airline(df, airline)
+  }
+  
+  if (!is.null(origin_airport)) {
+    df <- filter_by_origin_airport(df, origin_airport)
+  }
+  
+  if (!is.null(season)) {
+    df <- filter_by_season(df, season)
+  }
+  
+  total_flights <- nrow(df)
+  
+  df_operated <- df |>
+    filter(CANCELLED == 0, DIVERTED == 0)
+  
+  avg_dep <- df_operated |>
+    summarise(v = mean(DEP_DELAY, na.rm = TRUE)) |>
+    pull(v) |>
+    round(2)
+  
+  avg_arr <- df_operated |>
+    summarise(v = mean(ARR_DELAY, na.rm = TRUE)) |>
+    pull(v) |>
+    round(2)
+  
+  list(
+    total_flights = total_flights,
+    avg_dep_delay = avg_dep,
+    avg_arr_delay = avg_arr
+  )
+}
 
 
 
