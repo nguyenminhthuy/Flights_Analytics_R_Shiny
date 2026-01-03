@@ -180,21 +180,26 @@ server <- function(input, output, session) {
     )
   })
   
+  #----------------------------------#
+  # PERFORMANCE - OVERVIEW
+  #----------------------------------#
+
   # ==============================
-  # APPLIED FILTER VALUES
   # ==============================
-  applied_year    <- reactiveVal("All")
-  applied_airline <- reactiveVal("All")
+  # PF_OV APPLIED FILTER VALUES
+  # ==============================
+  pf_ov_applied_year    <- reactiveVal("All")
+  pf_ov_applied_airline <- reactiveVal("All")
   
   observeEvent(input$pf_ov_apply_filter, {
-    applied_year(input$pf_ov_year_select)
-    applied_airline(input$pf_ov_airline_select)
+    pf_ov_applied_year(input$pf_ov_year_select)
+    pf_ov_applied_airline(input$pf_ov_airline_select)
   })
   
   # ==============================
-  # FILTERED DATA (RUN ONLY ON APPLY)
+  # PF_OV FILTERED DATA (RUN ONLY ON APPLY)
   # ==============================
-  filtered_flights <- reactive({
+  pf_ov_filtered_flights <- reactive({
     
     # Page load → no filter
     if (input$pf_ov_apply_filter == 0) {
@@ -203,23 +208,23 @@ server <- function(input, output, session) {
     
     df <- df_flights
     
-    if (applied_year() != "All") {
-      df <- df[df$YEAR == applied_year(), ]
+    if (pf_ov_applied_year() != "All") {
+      df <- df[df$YEAR == pf_ov_applied_year(), ]
     }
     
-    if (applied_airline() != "All") {
-      df <- df[df$AIRLINE == applied_airline(), ]
+    if (pf_ov_applied_airline() != "All") {
+      df <- df[df$AIRLINE == pf_ov_applied_airline(), ]
     }
     
     df
   })
   
   # ==============================
-  # SUMMARY (FAST, NO FILTER HERE)
+  # PF_OV SUMMARY (FAST, NO FILTER HERE)
   # ==============================
-  summary_data <- reactive({
+  pf_ov_summary_data <- reactive({
     
-    df <- filtered_flights()
+    df <- pf_ov_filtered_flights()
     
     total_flights <- nrow(df)
     
@@ -239,31 +244,34 @@ server <- function(input, output, session) {
   })
   
   # ==============================
-  # RENDER KPI CARDS
+  # PF_OV RENDER KPI CARDS
   # ==============================
   output$pf_ov_total_flights <- renderText({
-    format_compact(summary_data()$total_flights)
+    format_compact(pf_ov_summary_data()$total_flights)
   })
   
   output$pf_ov_on_time_rate <- renderText({
-    paste0(summary_data()$on_time_rate, "%")
+    paste0(pf_ov_summary_data()$on_time_rate, "%")
   })
   
   output$pf_ov_delay_rate <- renderText({
-    paste0(summary_data()$delay_rate, "%")
+    paste0(pf_ov_summary_data()$delay_rate, "%")
   })
   
   # ==============================
-  # RENDER FILTER TEXT (APPLIED ONLY)
+  # PF_OV RENDER FILTER TEXT (APPLIED ONLY)
   # ==============================
   output$pf_ov_year_text <- renderText({
-    if (applied_year() == "All") "2019–2023" else applied_year()
+    if (pf_ov_applied_year() == "All") "2019–2023" 
+    else pf_ov_applied_year()
   })
   
   output$pf_ov_airline_text <- renderText({
-    if (applied_airline() == "All") "All airlines" else applied_airline()
+    if (pf_ov_applied_airline() == "All") "All airlines" 
+    else pf_ov_applied_airline()
   })
   
+
   
   #----------------------------------#
   # PERFORMANCE - LOCAL PATTERNS

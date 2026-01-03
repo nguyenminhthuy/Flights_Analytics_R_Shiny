@@ -651,61 +651,6 @@ filter_by_season <- function(df, season) {
 #==================================#
 # On-time Performance & Delays
 #==================================#
-library(data.table)
-
-# dt <- as.data.table(df_flights)
-# 
-# summary_table <- dt[
-#   , .(
-#     total_flights = .N,
-#     cancelled     = sum(CANCELLED == 1),
-#     diverted      = sum(DIVERTED == 1),
-#     on_time       = sum(
-#       DEP_DELAY <= 15 &
-#         CANCELLED == 0 &
-#         DIVERTED == 0
-#     )
-#   ),
-#   by = .(YEAR, AIRLINE)
-# ]
-# 
-# summary_table[
-#   , operated := total_flights - cancelled - diverted
-# ][
-#   , `:=`(
-#     on_time_rate = round(on_time / operated * 100, 2),
-#     delay_rate   = round((operated - on_time) / operated * 100, 2)
-#   )
-# ]
-# 
-# ontime_delay_summary <- function(year = "All", airline = "All") {
-#   
-#   dt <- summary_table
-#   
-#   if (year != "All") {
-#     dt <- dt[YEAR == year]
-#   }
-#   
-#   if (airline != "All") {
-#     dt <- dt[AIRLINE == airline]
-#   }
-#   
-#   if (nrow(dt) == 0 || sum(dt$operated) == 0) {
-#     return(list(
-#       total_flights = 0,
-#       on_time_rate  = 0,
-#       delay_rate    = 0
-#     ))
-#   }
-#   
-#   list(
-#     total_flights = sum(dt$total_flights),
-#     on_time_rate  = round(sum(dt$on_time) / sum(dt$operated) * 100, 2),
-#     delay_rate    = round(
-#       (sum(dt$operated) - sum(dt$on_time)) / sum(dt$operated) * 100, 2
-#     )
-#   )
-# }
 
 filter_by_year <- function(df, year) {
   if (!is.null(year)) {
