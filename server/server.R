@@ -180,47 +180,90 @@ server <- function(input, output, session) {
     )
   })
   
-  # ===============================
-  # APPLY FILTER
-  # ===============================
+  # ==============================
+  # APPLIED FILTER VALUES
+  # ==============================
+  applied_year    <- reactiveVal("All")
+  applied_airline <- reactiveVal("All")
   
-  # Initial state
-  display_year <- reactiveVal("2019–2023")
-  display_airline <- reactiveVal("All airlines")
-  display_origin <- reactiveVal("All airports")
-  display_season <- reactiveVal("All seasons")
-  
-  #----------------------------------#
-  # PERFORMANCE - OVERVIEW
-  #----------------------------------#
-  # Update on Apply
   observeEvent(input$pf_ov_apply_filter, {
+    applied_year(input$pf_ov_year_select)
+    applied_airline(input$pf_ov_airline_select)
+  })
+  
+  # ==============================
+  # FILTERED DATA (RUN ONLY ON APPLY)
+  # ==============================
+  filtered_flights <- reactive({
     
-    display_year(
-      if (input$pf_ov_year_select == "All") {
-        "2019–2023"
-      } else {
-        input$pf_ov_year_select
-      }
-    )
+    # Page load → no filter
+    if (input$pf_ov_apply_filter == 0) {
+      return(df_flights)
+    }
     
-    display_airline(
-      if (input$pf_ov_airline_select == "All") {
-        "All airlines"
-      } else {
-        input$pf_ov_airline_select
-      }
+    df <- df_flights
+    
+    if (applied_year() != "All") {
+      df <- df[df$YEAR == applied_year(), ]
+    }
+    
+    if (applied_airline() != "All") {
+      df <- df[df$AIRLINE == applied_airline(), ]
+    }
+    
+    df
+  })
+  
+  # ==============================
+  # SUMMARY (FAST, NO FILTER HERE)
+  # ==============================
+  summary_data <- reactive({
+    
+    df <- filtered_flights()
+    
+    total_flights <- nrow(df)
+    
+    cancelled <- df$CANCELLED == 1
+    diverted  <- df$DIVERTED  == 1
+    operated  <- !cancelled & !diverted
+    on_time   <- operated & df$DEP_DELAY <= 15
+    
+    total_operated <- sum(operated)
+    total_on_time  <- sum(on_time)
+    
+    list(
+      total_flights = total_flights,
+      on_time_rate  = round(total_on_time / total_operated * 100, 2),
+      delay_rate    = round((total_operated - total_on_time) / total_operated * 100, 2)
     )
   })
   
-  # render output
+  # ==============================
+  # RENDER KPI CARDS
+  # ==============================
+  output$pf_ov_total_flights <- renderText({
+    format_compact(summary_data()$total_flights)
+  })
+  
+  output$pf_ov_on_time_rate <- renderText({
+    paste0(summary_data()$on_time_rate, "%")
+  })
+  
+  output$pf_ov_delay_rate <- renderText({
+    paste0(summary_data()$delay_rate, "%")
+  })
+  
+  # ==============================
+  # RENDER FILTER TEXT (APPLIED ONLY)
+  # ==============================
   output$pf_ov_year_text <- renderText({
-    display_year()
+    if (applied_year() == "All") "2019–2023" else applied_year()
   })
   
   output$pf_ov_airline_text <- renderText({
-    display_airline()
+    if (applied_airline() == "All") "All airlines" else applied_airline()
   })
+  
   
   #----------------------------------#
   # PERFORMANCE - LOCAL PATTERNS

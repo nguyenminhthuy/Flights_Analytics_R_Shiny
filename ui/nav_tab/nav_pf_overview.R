@@ -26,7 +26,7 @@ nav_pf_overview <- tagList(
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("3.0M"),
+                  tags$h3(textOutput("pf_ov_total_flights")),
                   tags$strong("Flights")
                   
               )
@@ -34,14 +34,14 @@ nav_pf_overview <- tagList(
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("82.47%"),
+                  tags$h3(textOutput("pf_ov_on_time_rate")),
                   tags$strong("On-time Rate")
               )
             ),
             column(
               width = 2,
               div(class = "eda-card eda-card-text",
-                  tags$h3("17.53%"),
+                  tags$h3(textOutput("pf_ov_delay_rate")),
                   tags$strong("Delay Rate")
               )
             ),
