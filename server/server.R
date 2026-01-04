@@ -190,14 +190,11 @@ server <- function(input, output, session) {
   observeEvent(input$pf_ov_apply_filter, {
     pf_ov_applied_year(input$pf_ov_year_select)
     pf_ov_applied_airline(input$pf_ov_airline_select)
-  })
+  }, ignoreInit = TRUE)
   
-  pf_ov_filtered_flights <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_ov_apply_filter == 0) {
-      return(df_flights)
-    }
+  # ---- Central filtered dataset (CACHE)
+  pf_ov_df <- reactive({
+    req(df_flights)
     
     df <- df_flights
     
@@ -210,13 +207,14 @@ server <- function(input, output, session) {
     }
     
     df
-  })
+  }) |> bindCache(
+    pf_ov_applied_year(),
+    pf_ov_applied_airline()
+  )
   
-  pf_ov_summary_data <- reactive({
-    
-    df <- pf_ov_filtered_flights()
-    
-    total_flights <- nrow(df)
+  # ---- Summary (KPI numbers) – compute ONCE
+  pf_ov_summary <- reactive({
+    df <- pf_ov_df()
     
     cancelled <- df$CANCELLED == 1
     diverted  <- df$DIVERTED  == 1
@@ -224,58 +222,45 @@ server <- function(input, output, session) {
     on_time   <- operated & df$DEP_DELAY <= 15
     
     total_operated <- sum(operated)
-    total_on_time  <- sum(on_time)
     
     list(
-      total_flights = total_flights,
-      on_time_rate  = round(total_on_time / total_operated * 100, 2),
-      delay_rate    = round((total_operated - total_on_time) / total_operated * 100, 2)
+      total_flights = nrow(df),
+      on_time_rate  = if (total_operated > 0)
+        round(sum(on_time) / total_operated * 100, 2) else NA,
+      delay_rate    = if (total_operated > 0)
+        round((total_operated - sum(on_time)) / total_operated * 100, 2) else NA
     )
-  })
+  }) |> bindCache(
+    pf_ov_applied_year(),
+    pf_ov_applied_airline()
+  )
   
+  # ---- Charts (NO filtering inside)
   pf_ov_monthly_volume_delay <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_ov_apply_filter == 0) {
-      return(
-        monthly_volume_delay(df_flights)
-      )
-    }
-    
-    monthly_volume_delay(
-      df_flights,
-      year    = if (pf_ov_applied_year() == "All") NULL else pf_ov_applied_year(),
-      airline = if (pf_ov_applied_airline() == "All") NULL else pf_ov_applied_airline()
-    )
-  })
+    monthly_volume_delay(pf_ov_df())
+  }) |> bindCache(
+    pf_ov_applied_year(),
+    pf_ov_applied_airline()
+  )
   
   pf_ov_delay_causes_chart <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_ov_apply_filter == 0) {
-      return(
-        delay_causes(df_flights)
-      )
-    }
-    
-    delay_causes(
-      df_flights,
-      year    = if (pf_ov_applied_year() == "All") NULL else pf_ov_applied_year(),
-      airline = if (pf_ov_applied_airline() == "All") NULL else pf_ov_applied_airline()
-    )
-  })
+    delay_causes(pf_ov_df())
+  }) |> bindCache(
+    pf_ov_applied_year(),
+    pf_ov_applied_airline()
+  )
   
   # RENDER CARDS
   output$pf_ov_total_flights <- renderText({
-    format_compact(pf_ov_summary_data()$total_flights)
+    format_compact(pf_ov_summary()$total_flights)
   })
   
   output$pf_ov_on_time_rate <- renderText({
-    paste0(pf_ov_summary_data()$on_time_rate, "%")
+    paste0(pf_ov_summary()$on_time_rate, "%")
   })
   
   output$pf_ov_delay_rate <- renderText({
-    paste0(pf_ov_summary_data()$delay_rate, "%")
+    paste0(pf_ov_summary()$delay_rate, "%")
   })
   
   # Render charts
@@ -377,60 +362,6 @@ server <- function(input, output, session) {
       airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
       season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
     )
-  })
-  
-  pf_lp_filtered_flights <- reactive({
-    
-    if (input$pf_lp_apply_filter == 0) {
-      return(df_flights)
-    }
-    
-    df <- df_flights
-    
-    if (pf_lp_applied_year() != "All") {
-      df <- df[df$YEAR == pf_lp_applied_year(), ]
-    }
-    
-    if (pf_lp_applied_airline() != "All") {
-      df <- df[df$AIRLINE == pf_lp_applied_airline(), ]
-    }
-    
-    if (pf_lp_applied_origin() != "All") {
-      df <- df[df$ORIGIN == pf_lp_applied_origin(), ]
-    }
-    
-    if (pf_lp_applied_season() != "All") {
-      df <- df[df$SEASON == pf_lp_applied_season(), ]
-    }
-    
-    df
-  })
-  
-  pf_lp_filtered_flights <- reactive({
-    
-    if (input$pf_lp_apply_filter == 0) {
-      return(df_flights)
-    }
-    
-    df <- df_flights
-    
-    if (pf_lp_applied_year() != "All") {
-      df <- df[df$YEAR == pf_lp_applied_year(), ]
-    }
-    
-    if (pf_lp_applied_airline() != "All") {
-      df <- df[df$AIRLINE == pf_lp_applied_airline(), ]
-    }
-    
-    if (pf_lp_applied_origin() != "All") {
-      df <- df[df$ORIGIN == pf_lp_applied_origin(), ]
-    }
-    
-    if (pf_lp_applied_season() != "All") {
-      df <- df[df$SEASON == pf_lp_applied_season(), ]
-    }
-    
-    df
   })
   
   output$pf_lp_total_flights <- renderText({

@@ -6,6 +6,7 @@ library(plotly)
 library(leaflet)
 library(leaflet.extras)
 library(rlang)
+library(memoise)
 
 options(dplyr.summarise.inform = FALSE)
 
@@ -117,37 +118,45 @@ df_flights <- df_flights |>
 #==================================#
 # 2.2 Check for missing values
 #==================================#
-check_missing_cols <- function(df){
-  missing_cols <- c()
-  missing_counts <- c()
-  no_missing_cols <- c()
-  
-  for(col in names(df)){
-    na_count <- sum(is.na(df[[col]]))
-    if(na_count > 0){
-      missing_cols <- c(missing_cols, col)
-      missing_counts <- c(missing_counts, na_count)
-    }
-    else{
-      no_missing_cols <- c(no_missing_cols, col)
-    }
-  }
-  
-  cat("Columns WITH missing values:\n")
-  if (length(missing_cols) > 0) {
-    for (i in seq_along(missing_cols)) {
-      cat("-", missing_cols[i], ":", missing_counts[i], "\n")
-    }
-  } else {
-    cat("None\n")
-  }
-  
-  cat("\nColumns WITHOUT missing values:\n")
-  if (length(no_missing_cols) > 0) {
-    print(no_missing_cols)
-  } else {
-    cat("None\n")
-  }
+# check_missing_cols <- function(df){
+#   missing_cols <- c()
+#   missing_counts <- c()
+#   no_missing_cols <- c()
+#   
+#   for(col in names(df)){
+#     na_count <- sum(is.na(df[[col]]))
+#     if(na_count > 0){
+#       missing_cols <- c(missing_cols, col)
+#       missing_counts <- c(missing_counts, na_count)
+#     }
+#     else{
+#       no_missing_cols <- c(no_missing_cols, col)
+#     }
+#   }
+#   
+#   cat("Columns WITH missing values:\n")
+#   if (length(missing_cols) > 0) {
+#     for (i in seq_along(missing_cols)) {
+#       cat("-", missing_cols[i], ":", missing_counts[i], "\n")
+#     }
+#   } else {
+#     cat("None\n")
+#   }
+#   
+#   cat("\nColumns WITHOUT missing values:\n")
+#   if (length(no_missing_cols) > 0) {
+#     print(no_missing_cols)
+#   } else {
+#     cat("None\n")
+#   }
+# }
+
+check_missing_cols <- function(df) {
+  na_counts <- colSums(is.na(df))
+  list(
+    with_na = na_counts[na_counts > 0],
+    without_na = names(na_counts[na_counts == 0])
+  )
 }
 
 check_missing_cols(df_flights)
@@ -180,16 +189,27 @@ format_compact <- function(n) {
 # HELPER FUNCTIONS
 #----------------------------------#
 
+# pct_vs_baseline <- function(df, year, baseline, col) {
+#   n_year <- df |>
+#     filter(YEAR == year) |>
+#     pull({{col}})
+#   
+#   n_base <- df |>
+#     filter(YEAR == baseline) |>
+#     pull({{col}})
+#   
+#   round((n_year - n_base) / n_base * 100, 2)
+# }
+
 pct_vs_baseline <- function(df, year, baseline, col) {
-  n_year <- df |>
-    filter(YEAR == year) |>
-    pull({{col}})
+  vals <- df |>
+    filter(YEAR %in% c(year, baseline)) |>
+    select(YEAR, {{col}})
   
-  n_base <- df |>
-    filter(YEAR == baseline) |>
-    pull({{col}})
+  v <- split(vals[[deparse(substitute(col))]], vals$YEAR)
   
-  round((n_year - n_base) / n_base * 100, 2)
+  round((v[[as.character(year)]] - v[[as.character(baseline)]]) /
+          v[[as.character(baseline)]] * 100, 2)
 }
 
 get_operated_flights <- function(df){
@@ -234,6 +254,7 @@ ontime_delay_by <- function(df, group_cols){
     ) |>
     arrange(across(all_of(group_cols)))
 }
+
 
 #----------------------------------#
 # PRE-COMPUTED EDA METRICS
@@ -301,8 +322,7 @@ pct_23_19_delayed <- pct_vs_baseline(df_ontime_delay, 2023, 2019, n_delayed)
 total_flights <- nrow(df_flights)
 total_airlines <- n_distinct(df_flights$AIRLINE)
 total_airports <- n_distinct(df_flights$ORIGIN)
-total_routes <- nrow(df_flights |>
-                       distinct(ORIGIN, DEST))
+total_routes   <- nrow(distinct(df_flights, ORIGIN, DEST))
 
 total_flights_fmt <- format_compact(total_flights)
 
@@ -620,33 +640,20 @@ fig_monthly_departures <- plot_ly(
 # Divert rate = Number of diverted flights / Total number of scheduled flights * 100
 #==================================#
 
-filter_by_year <- function(df, year) {
-  if (!is.null(year)) {
-    df <- filter(df, YEAR == year)
-  }
-  return(df)
-}
+filter_by_year    <- function(df, year)    
+  if (!is.null(year)) filter(df, YEAR == year) else df
 
-filter_by_airline <- function(df, airline) {
-  if (!is.null(airline)) {
-    df <- filter(df, AIRLINE == airline)
-  }
-  return(df)
-}
+filter_by_airline <- function(df, airline) 
+  if (!is.null(airline)) 
+    filter(df, AIRLINE == airline) else df
 
-filter_by_origin_airport <- function(df, airport) {
-  if (!is.null(airport)) {
-    df <- filter(df, ORIGIN == airport)
-  }
-  return(df)
-}
+filter_by_season  <- function(df, season)  
+  if (!is.null(season)) 
+    filter(df, SEASON == season) else df
 
-filter_by_season <- function(df, season) {
-  if (!is.null(season)) {
-    df <- filter(df, SEASON == season)
-  }
-  return(df)
-}
+filter_by_origin  <- function(df, origin)  
+  if (!is.null(origin)) 
+    filter(df, ORIGIN == origin) else df
 
 #==================================#
 # On-time Performance & Delays
@@ -1519,6 +1526,18 @@ plot_cause_donut <- function(df, year = NULL, airline = NULL, season = NULL) {
   fig
 }
 
+monthly_volume_delay    <- memoise(monthly_volume_delay)
+delay_causes            <- memoise(delay_causes)
+local_patterns           <- memoise(local_patterns)
+airport_delay_stability <- memoise(airport_delay_stability)
+routing_ranking          <- memoise(routing_ranking)
+time_of_day              <- memoise(time_of_day)
+arrival_delay_folium     <- memoise(arrival_delay_folium)
+influence_of_delays      <- memoise(influence_of_delays)
+delay_factor_interaction <- memoise(delay_factor_interaction)
+disruption_metrics       <- memoise(disruption_metrics)
+plot_disruption_bar      <- memoise(plot_disruption_bar)
+plot_cause_donut         <- memoise(plot_cause_donut)
 
 
 
