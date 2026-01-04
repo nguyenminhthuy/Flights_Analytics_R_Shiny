@@ -13,7 +13,6 @@ source("ui/nav_tab/nav_template.R")
 
 ui <- navbarPage(
   title = "U.S. Flight Operations",
-  
   # LOAD CSS
   header = tagList(
     tags$link(rel = "stylesheet", type = "text/css", href = "style.css")

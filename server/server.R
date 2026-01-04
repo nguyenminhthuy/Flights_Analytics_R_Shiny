@@ -534,110 +534,119 @@ server <- function(input, output, session) {
   })
   
   # ==============================
-  # DISRUPTION
-  # ==============================
+# DISRUPTION
+# ==============================
+
+# ---- Applied filters (snapshot khi bấm Apply)
+dis_applied_year    <- reactiveVal("All")
+dis_applied_airline <- reactiveVal("All")
+dis_applied_season  <- reactiveVal("All")
+
+observeEvent(input$dis_apply_filter, {
+  dis_applied_year(input$dis_year_select)
+  dis_applied_airline(input$dis_airline_select)
+  dis_applied_season(input$dis_season_select)
+}, ignoreInit = TRUE)
+
+# ---- Central filtered dataset (CACHE)
+dis_df <- reactive({
+  req(df_flights)
+
+  df <- df_flights
+
+  if (dis_applied_year() != "All") {
+    df <- df[df$YEAR == dis_applied_year(), ]
+  }
+
+  if (dis_applied_airline() != "All") {
+    df <- df[df$AIRLINE == dis_applied_airline(), ]
+  }
+
+  if (dis_applied_season() != "All") {
+    df <- df[df$SEASON == dis_applied_season(), ]
+  }
+
+  df
+}) |> bindCache(
+  dis_applied_year(),
+  dis_applied_airline(),
+  dis_applied_season()
+)
+
+# ---- Summary KPIs
+dis_summary <- reactive({
+  disruption_metrics(dis_df())
+}) |> bindCache(
+  dis_applied_year(),
+  dis_applied_airline(),
+  dis_applied_season()
+)
+
+# ---- Charts
+dis_disruption_bar_chart <- reactive({
+  plot_disruption_bar(dis_df())
+}) |> bindCache(
+  dis_applied_year(),
+  dis_applied_airline(),
+  dis_applied_season()
+)
+
+dis_cause_donut_chart <- reactive({
+  plot_cause_donut(dis_df())
+}) |> bindCache(
+  dis_applied_year(),
+  dis_applied_airline(),
+  dis_applied_season()
+)
+
+# ==============================
+# OUTPUTS
+# ==============================
+
+# ---- KPIs
+output$dis_total_flight <- renderText({
+  format_compact(dis_summary()$dis_total_flight)
+})
+
+output$dis_cancel_flight <- renderText({
+  format_compact(dis_summary()$dis_cancel_flight)
+})
+
+output$dis_divert_flight <- renderText({
+  format_compact(dis_summary()$dis_divert_flight)
+})
+
+# ---- Charts
+output$dis_plot_disruption_bar <- renderPlotly({
+  dis_disruption_bar_chart()
+})
+
+output$dis_plot_cause_donut <- renderPlotly({
+  dis_cause_donut_chart()
+})
+
+# ---- Filter text
+output$dis_year_text <- renderText({
+  if (dis_applied_year() == "All") "2019–2023"
+  else dis_applied_year()
+})
+
+output$dis_airline_text <- renderText({
+  if (dis_applied_airline() == "All") "All airlines"
+  else dis_applied_airline()
+})
+
+output$dis_season_text <- renderText({
+  if (dis_applied_season() == "All") "All seasons"
+  else dis_applied_season()
+})
+
   
-  # ---- Applied filters (snapshot khi bấm Apply)
-  dis_applied_year    <- reactiveVal("All")
-  dis_applied_airline <- reactiveVal("All")
-  dis_applied_season  <- reactiveVal("All")
   
-  observeEvent(input$dis_apply_filter, {
-    dis_applied_year(input$dis_year_select)
-    dis_applied_airline(input$dis_airline_select)
-    dis_applied_season(input$dis_season_select)
-  }, ignoreInit = TRUE)
   
-  # ---- Central filtered dataset (CACHE)
-  dis_df <- reactive({
-    req(df_flights)
-    
-    df <- df_flights
-    
-    if (dis_applied_year() != "All") {
-      df <- df[df$YEAR == dis_applied_year(), ]
-    }
-    
-    if (dis_applied_airline() != "All") {
-      df <- df[df$AIRLINE == dis_applied_airline(), ]
-    }
-    
-    if (dis_applied_season() != "All") {
-      df <- df[df$SEASON == dis_applied_season(), ]
-    }
-    
-    df
-  }) |> bindCache(
-    dis_applied_year(),
-    dis_applied_airline(),
-    dis_applied_season()
-  )
   
-  # ---- Summary KPIs
-  dis_summary <- reactive({
-    disruption_metrics(dis_df())
-  }) |> bindCache(
-    dis_applied_year(),
-    dis_applied_airline(),
-    dis_applied_season()
-  )
   
-  # ---- Charts
-  dis_disruption_bar_chart <- reactive({
-    plot_disruption_bar(dis_df())
-  }) |> bindCache(
-    dis_applied_year(),
-    dis_applied_airline(),
-    dis_applied_season()
-  )
   
-  dis_cause_donut_chart <- reactive({
-    plot_cause_donut(dis_df())
-  }) |> bindCache(
-    dis_applied_year(),
-    dis_applied_airline(),
-    dis_applied_season()
-  )
   
-  # ==============================
-  # OUTPUTS
-  # ==============================
   
-  # ---- KPIs
-  output$dis_total_flight <- renderText({
-    format_compact(dis_summary()$dis_total_flight)
-  })
-  
-  output$dis_cancel_flight <- renderText({
-    format_compact(dis_summary()$dis_cancel_flight)
-  })
-  
-  output$dis_divert_flight <- renderText({
-    format_compact(dis_summary()$dis_divert_flight)
-  })
-  
-  # ---- Charts
-  output$dis_plot_disruption_bar <- renderPlotly({
-    dis_disruption_bar_chart()
-  })
-  
-  output$dis_plot_cause_donut <- renderPlotly({
-    dis_cause_donut_chart()
-  })
-  
-  # ---- Filter text
-  output$dis_year_text <- renderText({
-    if (dis_applied_year() == "All") "2019–2023"
-    else dis_applied_year()
-  })
-  
-  output$dis_airline_text <- renderText({
-    if (dis_applied_airline() == "All") "All airlines"
-    else dis_applied_airline()
-  })
-  
-  output$dis_season_text <- renderText({
-    if (dis_applied_season() == "All") "All seasons"
-    else dis_applied_season()
-  })
 }
