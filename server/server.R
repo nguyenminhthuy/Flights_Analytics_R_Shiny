@@ -184,6 +184,7 @@ server <- function(input, output, session) {
   # PERFORMANCE - OVERVIEW
   # ==============================
   
+  # ---- Applied filters
   pf_ov_applied_year    <- reactiveVal("All")
   pf_ov_applied_airline <- reactiveVal("All")
   
@@ -250,7 +251,10 @@ server <- function(input, output, session) {
     pf_ov_applied_airline()
   )
   
-  # RENDER CARDS
+  # ==============================
+  # OUTPUTS
+  # ==============================
+  # ---- KPI cards
   output$pf_ov_total_flights <- renderText({
     format_compact(pf_ov_summary()$total_flights)
   })
@@ -263,8 +267,7 @@ server <- function(input, output, session) {
     paste0(pf_ov_summary()$delay_rate, "%")
   })
   
-  # Render charts
-  
+  # ---- Charts
   output$pf_ov_monthly_volume_delay <- renderPlotly({
     pf_ov_monthly_volume_delay()
   })
@@ -273,7 +276,7 @@ server <- function(input, output, session) {
     pf_ov_delay_causes_chart()
   })
   
-  # RENDER TEXT 
+  # ---- Filter text
   output$pf_ov_year_text <- renderText({
     if (pf_ov_applied_year() == "All") "2019–2023" 
     else pf_ov_applied_year()
@@ -288,6 +291,7 @@ server <- function(input, output, session) {
   # PERFORMANCE - LOCAL PATTERNS
   # ==============================
   
+  # ---- Applied filters
   pf_lp_applied_year    <- reactiveVal("All")
   pf_lp_applied_airline <- reactiveVal("All")
   pf_lp_applied_origin  <- reactiveVal("All")
@@ -298,30 +302,11 @@ server <- function(input, output, session) {
     pf_lp_applied_airline(input$pf_lp_airline_select)
     pf_lp_applied_origin(input$pf_lp_airport_select)
     pf_lp_applied_season(input$pf_lp_season_select)
-  })
+  }, ignoreInit = TRUE)
   
-  pf_lp_summary_data <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_lp_apply_filter == 0) {
-      return(local_patterns(df_flights))
-    }
-    
-    local_patterns(
-      df_flights,
-      year = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
-      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
-      origin_airport = if (pf_lp_applied_origin() == "All") NULL else pf_lp_applied_origin(),
-      season = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
-    )
-  })
-  
-  pf_lp_filtered_flights <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_lp_apply_filter == 0) {
-      return(df_flights)
-    }
+  # ---- Central filtered dataset (CACHE)
+  pf_lp_df <- reactive({
+    req(df_flights)
     
     df <- df_flights
     
@@ -342,76 +327,67 @@ server <- function(input, output, session) {
     }
     
     df
-  })
+  }) |> bindCache(
+    pf_lp_applied_year(),
+    pf_lp_applied_airline(),
+    pf_lp_applied_origin(),
+    pf_lp_applied_season()
+  )
   
-  pf_lp_airport_stability <- reactive({
-    
+  # ---- Summary (KPI cards)
+  pf_lp_summary <- reactive({
+    local_patterns(pf_lp_df())
+  }) |> bindCache(
+    pf_lp_applied_year(),
+    pf_lp_applied_airline(),
+    pf_lp_applied_origin(),
+    pf_lp_applied_season()
+  )
+  
+  # ---- Airport stability table
+  pf_lp_airport_stability_tbl <- reactive({
     airport_delay_stability(
-      pf_lp_filtered_flights()
+      pf_lp_df(),
+      min_flights = 1000
     )
-    
-  })
+  }) |> bindCache(
+    pf_lp_applied_year(),
+    pf_lp_applied_airline(),
+    pf_lp_applied_origin(),
+    pf_lp_applied_season()
+  )
   
-  pf_lp_routing_table <- reactive({
-    
-    df <- pf_lp_filtered_flights()
-    
-    routing_ranking(
-      df,
-      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
-      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
-      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
-    )
-  })
+  # ---- Routing ranking table
+  pf_lp_routing_tbl <- reactive({
+    routing_ranking(pf_lp_df())
+  }) |> bindCache(
+    pf_lp_applied_year(),
+    pf_lp_applied_airline(),
+    pf_lp_applied_origin(),
+    pf_lp_applied_season()
+  )
   
+  # ==============================
+  # OUTPUTS
+  # ==============================
+  
+  # ---- KPI cards
   output$pf_lp_total_flights <- renderText({
-    format_compact(pf_lp_summary_data()$total_flights)
+    format_compact(pf_lp_summary()$total_flights)
   })
   
   output$pf_lp_dep_delay <- renderText({
-    paste0(pf_lp_summary_data()$avg_dep_delay, " min")
+    paste0(pf_lp_summary()$avg_dep_delay, " min")
   })
   
   output$pf_lp_arr_delay <- renderText({
-    paste0(pf_lp_summary_data()$avg_arr_delay, " min")
+    paste0(pf_lp_summary()$avg_arr_delay, " min")
   })
   
+  # ---- Airport stability table
   output$pf_lp_airport_stability_table <- DT::renderDT({
-    
-    df_tbl <- airport_delay_stability(
-      df_flights,
-      min_flights = 1000,
-      year    = if (pf_lp_applied_year()    == "All") NULL else pf_lp_applied_year(),
-      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
-      season  = if (pf_lp_applied_season()  == "All") NULL else pf_lp_applied_season(),
-      origin  = if (pf_lp_applied_origin()  == "All") NULL else pf_lp_applied_origin()
-    )
-    
     DT::datatable(
-      df_tbl,
-      rownames = FALSE,        # ❌ bỏ cột index
-      extensions = "Scroller",
-      options = list(
-        autoWidth = FALSE,
-        scrollY = 250,
-        scrollCollapse = TRUE,
-        scroller = TRUE,
-        pageLength = 10,
-        columnDefs = list(
-          list(width = "70px",  targets = 0), # Airport
-          list(width = "100px", targets = 1), # n_flights
-          list(width = "100px", targets = 2), # avg delay
-          list(width = "100px", targets = 3)  # std
-        )
-      ),
-      class = "stripe hover compact"
-    )
-  })
-  
-  output$pf_lp_routing_table <- DT::renderDT({
-    
-    DT::datatable(
-      pf_lp_routing_table(),
+      pf_lp_airport_stability_tbl(),
       rownames = FALSE,
       extensions = "Scroller",
       options = list(
@@ -419,38 +395,39 @@ server <- function(input, output, session) {
         scrollCollapse = TRUE,
         scroller = TRUE,
         pageLength = 10,
-        lengthMenu = c(10, 25, 50, 100),
-        autoWidth = FALSE,
-        dom = "lftip",
-        columnDefs = list(
-          list(width = "140px", targets = 0),
-          list(className = "dt-right", targets = c(1, 2))
-        )
+        autoWidth = FALSE
       ),
       class = "stripe hover compact"
     )
   })
   
-  output$pf_lp_time_of_day <- renderPlotly({
-    
-    time_of_day(
-      df = pf_lp_filtered_flights(),
-      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
-      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
-      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
+  # ---- Routing table
+  output$pf_lp_routing_table <- DT::renderDT({
+    DT::datatable(
+      pf_lp_routing_tbl(),
+      rownames = FALSE,
+      extensions = "Scroller",
+      options = list(
+        scrollY = 250,
+        scrollCollapse = TRUE,
+        scroller = TRUE,
+        pageLength = 10,
+        autoWidth = FALSE
+      ),
+      class = "stripe hover compact"
     )
+  })
+  
+  # ---- Charts
+  output$pf_lp_time_of_day <- renderPlotly({
+    time_of_day(pf_lp_df())
   })
   
   output$pf_lp_arrival_delay_map <- renderLeaflet({
-    
-    arrival_delay_folium(
-      df = pf_lp_filtered_flights(),
-      year    = if (pf_lp_applied_year() == "All") NULL else pf_lp_applied_year(),
-      airline = if (pf_lp_applied_airline() == "All") NULL else pf_lp_applied_airline(),
-      season  = if (pf_lp_applied_season() == "All") NULL else pf_lp_applied_season()
-    )
+    arrival_delay_folium(pf_lp_df())
   })
   
+  # ---- Filter text
   output$pf_lp_year_text <- renderText({
     if (pf_lp_applied_year() == "All") "2019–2023"
     else pf_lp_applied_year()
@@ -474,24 +451,21 @@ server <- function(input, output, session) {
   # ==============================
   # PERFORMANCE - FACTORS
   # ==============================
+  
+  # ---- Applied filters (snapshot khi bấm Apply)
   pf_ft_applied_year    <- reactiveVal("All")
   pf_ft_applied_airline <- reactiveVal("All")
   pf_ft_applied_season  <- reactiveVal("All")
   
   observeEvent(input$pf_ft_apply_filter, {
-    
     pf_ft_applied_year(input$pf_ft_year_select)
     pf_ft_applied_airline(input$pf_ft_airline_select)
     pf_ft_applied_season(input$pf_ft_season_select)
-    
-  })
+  }, ignoreInit = TRUE)
   
-  pf_ft_filtered_flights <- reactive({
-    
-    # Page load → no filter
-    if (input$pf_ft_apply_filter == 0) {
-      return(df_flights)
-    }
+  # ---- Central filtered dataset (CACHE)
+  pf_ft_df <- reactive({
+    req(df_flights)
     
     df <- df_flights
     
@@ -508,28 +482,42 @@ server <- function(input, output, session) {
     }
     
     df
-  })
+  }) |> bindCache(
+    pf_ft_applied_year(),
+    pf_ft_applied_airline(),
+    pf_ft_applied_season()
+  )
+  
+  # ---- Charts (NO filtering inside)
+  pf_ft_influence_of_delays_chart <- reactive({
+    influence_of_delays(pf_ft_df())
+  }) |> bindCache(
+    pf_ft_applied_year(),
+    pf_ft_applied_airline(),
+    pf_ft_applied_season()
+  )
+  
+  pf_ft_delay_factor_interaction_chart <- reactive({
+    delay_factor_interaction(pf_ft_df())
+  }) |> bindCache(
+    pf_ft_applied_year(),
+    pf_ft_applied_airline(),
+    pf_ft_applied_season()
+  )
+  
+  # ==============================
+  # OUTPUTS
+  # ==============================
   
   output$pf_ft_influence_of_delays <- renderPlotly({
-    
-    influence_of_delays(
-      df = pf_ft_filtered_flights(),
-      year    = if (pf_ft_applied_year() == "All") NULL else pf_ft_applied_year(),
-      airline = if (pf_ft_applied_airline() == "All") NULL else pf_ft_applied_airline(),
-      season  = if (pf_ft_applied_season() == "All") NULL else pf_ft_applied_season()
-    )
+    pf_ft_influence_of_delays_chart()
   })
   
   output$pf_ft_delay_factor_interaction <- renderPlotly({
-    
-    delay_factor_interaction(
-      df = pf_ft_filtered_flights(),
-      year    = if (pf_ft_applied_year() == "All") NULL else pf_ft_applied_year(),
-      airline = if (pf_ft_applied_airline() == "All") NULL else pf_ft_applied_airline(),
-      season  = if (pf_ft_applied_season() == "All") NULL else pf_ft_applied_season()
-    )
+    pf_ft_delay_factor_interaction_chart()
   })
   
+  # ---- Filter text
   output$pf_ft_year_text <- renderText({
     if (pf_ft_applied_year() == "All") "2019–2023"
     else pf_ft_applied_year()
@@ -545,11 +533,11 @@ server <- function(input, output, session) {
     else pf_ft_applied_season()
   })
   
-  
-  
   # ==============================
-  # DISCRUPTION
+  # DISRUPTION
   # ==============================
+  
+  # ---- Applied filters (snapshot khi bấm Apply)
   dis_applied_year    <- reactiveVal("All")
   dis_applied_airline <- reactiveVal("All")
   dis_applied_season  <- reactiveVal("All")
@@ -558,59 +546,86 @@ server <- function(input, output, session) {
     dis_applied_year(input$dis_year_select)
     dis_applied_airline(input$dis_airline_select)
     dis_applied_season(input$dis_season_select)
-  })
+  }, ignoreInit = TRUE)
   
-  dis_summary_data <- reactive({
+  # ---- Central filtered dataset (CACHE)
+  dis_df <- reactive({
+    req(df_flights)
     
-    # Page load → no filter
-    if (input$dis_apply_filter == 0) {
-      return(disruption_metrics(df_flights))
+    df <- df_flights
+    
+    if (dis_applied_year() != "All") {
+      df <- df[df$YEAR == dis_applied_year(), ]
     }
     
-    disruption_metrics(
-      df_flights,
-      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
-      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
-      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
-    )
-  })
-  
-  dis_filtered_flights <- reactive({
-    df_flights   
-  })
-  
-  output$dis_plot_disruption_bar <- renderPlotly({
+    if (dis_applied_airline() != "All") {
+      df <- df[df$AIRLINE == dis_applied_airline(), ]
+    }
     
-    plot_disruption_bar(
-      df = dis_filtered_flights(),
-      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
-      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
-      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
-    )
-  })
-  
-  output$dis_plot_cause_donut <- renderPlotly({
+    if (dis_applied_season() != "All") {
+      df <- df[df$SEASON == dis_applied_season(), ]
+    }
     
-    plot_cause_donut(
-      df = dis_filtered_flights(),
-      year    = if (dis_applied_year() == "All") NULL else dis_applied_year(),
-      airline = if (dis_applied_airline() == "All") NULL else dis_applied_airline(),
-      season  = if (dis_applied_season() == "All") NULL else dis_applied_season()
-    )
-  })
+    df
+  }) |> bindCache(
+    dis_applied_year(),
+    dis_applied_airline(),
+    dis_applied_season()
+  )
   
+  # ---- Summary KPIs
+  dis_summary <- reactive({
+    disruption_metrics(dis_df())
+  }) |> bindCache(
+    dis_applied_year(),
+    dis_applied_airline(),
+    dis_applied_season()
+  )
+  
+  # ---- Charts
+  dis_disruption_bar_chart <- reactive({
+    plot_disruption_bar(dis_df())
+  }) |> bindCache(
+    dis_applied_year(),
+    dis_applied_airline(),
+    dis_applied_season()
+  )
+  
+  dis_cause_donut_chart <- reactive({
+    plot_cause_donut(dis_df())
+  }) |> bindCache(
+    dis_applied_year(),
+    dis_applied_airline(),
+    dis_applied_season()
+  )
+  
+  # ==============================
+  # OUTPUTS
+  # ==============================
+  
+  # ---- KPIs
   output$dis_total_flight <- renderText({
-    format_compact(dis_summary_data()$dis_total_flight)
+    format_compact(dis_summary()$dis_total_flight)
   })
   
   output$dis_cancel_flight <- renderText({
-    format_compact(dis_summary_data()$dis_cancel_flight)
+    format_compact(dis_summary()$dis_cancel_flight)
   })
   
   output$dis_divert_flight <- renderText({
-    format_compact(dis_summary_data()$dis_divert_flight)
+    format_compact(dis_summary()$dis_divert_flight)
   })
   
+  # ---- Charts
+  output$dis_plot_disruption_bar <- renderPlotly({
+    dis_disruption_bar_chart()
+  })
+  
+  output$dis_plot_cause_donut <- renderPlotly({
+    dis_cause_donut_chart()
+  })
+  
+  # ---- Filter text
   output$dis_year_text <- renderText({
     if (dis_applied_year() == "All") "2019–2023"
     else dis_applied_year()
@@ -625,12 +640,4 @@ server <- function(input, output, session) {
     if (dis_applied_season() == "All") "All seasons"
     else dis_applied_season()
   })
-  
-  
-  
-  
-  
-  
-  
-  
 }
